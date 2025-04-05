@@ -9,6 +9,7 @@ import java.util.List;
 
 @Service
 public class TestService {
+
     @Autowired
     MemberRepository memberRepository; //bean di
 
