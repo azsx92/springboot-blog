@@ -501,3 +501,117 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 - **쿼리 메소드**, **JPQL**, **네이티브 SQL** 등을 사용하여 복잡한 데이터베이스 작업을 손쉽게 처리할 수 있습니다.
 - **페이징**과 **정렬**을 기본적으로 지원하며, **트랜잭션 관리**를 자동으로 처리
 - Spring Data JPA 덕분에 **EntityManager**나 em.persist() 없이도 JPA를 편리하게 사용할 수 있다.
+
+### @AllArgsConstructor 는 무엇인가?
+`@AllArgsConstructor`는 **Lombok** 라이브러리에서 제공하는 **어노테이션** 중 하나입니다. 이 어노테이션은 **클래스**에 정의된 **모든 필드**에 대해 **생성자**를 자동으로 생성해주는 기능을 제공합니다. `@AllArgsConstructor`를 사용하면, 클래스의 **모든 멤버 변수**를 매개변수로 받는 생성자를 직접 작성할 필요 없이 자동으로 생성할 수 있습니다.
+
+### `@AllArgsConstructor` 사용 예시
+
+```java
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
+public class Article {
+    private Long id;
+    private String title;
+    private String content;
+
+    // Lombok이 아래와 같이 자동으로 생성해줌:
+    // public Article(Long id, String title, String content) {
+    //     this.id = id;
+    //     this.title = title;
+    //     this.content = content;
+    // }
+}
+```
+
+위 코드에서 **`@AllArgsConstructor`**를 사용하면, `id`, `title`, `content` 세 개의 멤버 변수에 대해 **매개변수로 받는 생성자**가 자동으로 생성됩니다. 직접 생성자를 작성할 필요 없이, Lombok이 이를 자동으로 처리해줍니다.
+
+### 주요 특징
+
+1. **모든 필드를 포함한 생성자 생성**:
+    - 클래스에 선언된 **모든 필드**(인스턴스 변수)에 대해 **생성자를 자동으로 만들어줍니다**.
+    - 예를 들어, 클래스에 필드가 3개라면 3개의 매개변수를 받는 생성자가 생성됩니다.
+
+2. **주로 불변 객체에서 사용**:
+    - **불변 객체(Immutable Object)**를 만들 때 `@AllArgsConstructor`와 함께 `@Getter`와 같은 어노테이션을 사용하여 **필드값 변경을 막고** 객체를 불변으로 만들 수 있습니다.
+
+3. **생성자 자동 생성**:
+    - 직접 생성자를 작성하는 수고를 덜 수 있고, **코드의 가독성**을 높이며, **반복적인 코드 작성을 줄여**줍니다.
+
+4. **필드 순서**:
+    - 생성자는 **필드 선언 순서대로** 생성됩니다. 즉, `@AllArgsConstructor`가 자동으로 생성한 생성자는 필드가 선언된 순서대로 매개변수가 정렬됩니다.
+
+5. **기타 Lombok 어노테이션과 함께 사용**:
+    - Lombok은 `@NoArgsConstructor`, `@Getter`, `@Setter`, `@ToString` 등 다양한 어노테이션을 제공하는데, 이를 조합하여 **데이터 클래스**나 **VO(Value Object)**를 쉽게 구현할 수 있습니다.
+
+### `@AllArgsConstructor`와 다른 생성자 관련 어노테이션 비교
+
+- **`@NoArgsConstructor`**: 기본 생성자를 자동으로 생성합니다. `@AllArgsConstructor`는 **모든 필드를 매개변수로 받는 생성자**를 생성하는 반면, `@NoArgsConstructor`는 **인자가 없는 기본 생성자**를 생성합니다.
+
+  ```java
+  @NoArgsConstructor
+  public class Article {
+      private Long id;
+      private String title;
+      private String content;
+  }
+  ```
+
+- **`@RequiredArgsConstructor`**: `@AllArgsConstructor`는 **모든 필드**에 대해 생성자를 생성하는 반면, `@RequiredArgsConstructor`는 **`final` 필드**와 **`@NonNull` 어노테이션이 붙은 필드**에 대해서만 생성자를 생성합니다.
+
+  ```java
+  @RequiredArgsConstructor
+  public class Article {
+      private final Long id;
+      private final String title;
+      private String content; // 이 필드는 생성자에 포함되지 않음
+  }
+  ```
+
+### 활용 예시
+
+#### 1. 불변 객체를 만들 때
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
+public class Article {
+    private final Long id;
+    private final String title;
+    private final String content;
+    
+    // Lombok이 자동으로 생성자와 Getter를 만들어줍니다.
+}
+```
+위 코드에서 `@AllArgsConstructor`는 `id`, `title`, `content`에 대한 생성자를 생성하고, `@Getter`는 각 필드에 대해 자동으로 getter 메소드를 생성합니다. **불변 객체**로 만들기 위해 `final` 키워드를 필드에 추가하고, 생성자에서 모든 값을 한 번에 초기화할 수 있게 합니다.
+
+#### 2. JavaBean 스타일
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.Setter;
+
+@AllArgsConstructor
+@Setter
+public class Product {
+    private Long productId;
+    private String name;
+    private double price;
+
+    // Lombok이 생성자와 Setter 메소드를 자동으로 생성해줍니다.
+}
+```
+
+위 코드에서는 **`@Setter`** 어노테이션도 사용하여 필드에 대한 **setter 메소드**를 생성합니다. `@AllArgsConstructor`는 모든 필드를 매개변수로 받는 생성자를 생성합니다. JavaBean 스타일의 객체를 빠르게 작성할 때 유용합니다.
+
+### 요약
+
+- **`@AllArgsConstructor`**는 클래스의 **모든 필드에 대해 매개변수를 받는 생성자**를 자동으로 생성해주는 Lombok 어노테이션입니다.
+- 이를 통해 **직접 생성자를 작성할 필요 없이** 코드의 가독성을 높이고, **반복적인 코드를 줄일 수** 있습니다.
+- 다른 Lombok 어노테이션(`@Getter`, `@Setter`, `@NoArgsConstructor` 등)과 조합하여 데이터 클래스를 간편하게 만들 수 있습니다.
+- 여기에는 내가 궁금했던 toString() 메소드는 생성하지 않는다고 한다.
+
