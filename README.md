@@ -904,3 +904,248 @@ assertThat(articles.get(0).getContent()).isEqualTo(content);
 4. **데이터베이스 검증**: `Article` 데이터베이스에 새로운 데이터가 저장되었는지 확인하고, 저장된 데이터가 요청한 값과 일치하는지 검증합니다.
 
 이와 같은 테스트는 API의 동작이 예상대로 이루어지는지, 데이터가 제대로 저장되는지 확인하는 데 유용합니다.
+
+## not available via reflection 에러 발생 
+이 오류는 Spring MVC에서 메서드 매개변수의 이름을 정확히 찾을 수 없어서 발생하는 문제입니다. 오류 메시지에서 핵심은 **"Name for argument of type [java.lang.Long] not specified, and parameter name information not available via reflection."**입니다. 이 문제는 Java 컴파일러가 메서드의 매개변수 이름을 런타임에 알 수 없기 때문에 발생합니다.
+
+### 문제 원인
+Spring은 매핑되는 메서드의 파라미터 이름을 참조하려고 하는데, **매개변수 이름이 컴파일 후에 포함되지 않아서** Spring이 이를 처리할 수 없습니다. 기본적으로 Java는 메서드의 파라미터 이름을 바이트 코드에 포함하지 않기 때문에, `-parameters` 옵션을 사용하여 컴파일할 때 파라미터 이름을 포함시켜야 합니다.
+
+### 해결 방법
+
+#### 1. **컴파일 옵션 설정**
+
+IntelliJ IDEA에서 **`-parameters` 옵션**을 설정하려면 다음 단계를 따르세요:
+
+- **IntelliJ IDEA에서**:
+    1. `File > Settings > Build, Execution, Deployment > Compiler > Java Compiler`로 이동합니다.
+    2. "Additional command line parameters" 섹션에 `-parameters`를 추가합니다.
+    3. 변경 사항을 저장하고 프로젝트를 재빌드합니다.
+
+이렇게 하면 컴파일할 때 메서드 파라미터의 이름이 바이트 코드에 포함됩니다. 그 후 Spring은 해당 이름을 사용하여 요청 매핑 시 매개변수를 적절히 처리할 수 있습니다.
+
+#### 2. **리플렉션을 사용할 때 `@RequestParam` 또는 `@PathVariable` 명시**
+
+만약 `@RequestParam` 또는 `@PathVariable`을 사용하는 경우, 명시적으로 파라미터 이름을 지정해줄 수 있습니다. 예를 들어:
+
+```java
+@RequestMapping("/some-path/{id}")
+public ResponseEntity<SomeObject> getSomeObject(@PathVariable("id") Long id) {
+    // 로직
+}
+```
+
+이렇게 하면 Spring이 파라미터 이름을 정확히 알 수 있습니다.
+
+#### 3. **메서드 파라미터에 이름 명시하기**
+
+메서드에서 사용하는 매개변수 이름이 없으면 리플렉션으로 추출할 수 없기 때문에, `@RequestParam`과 같은 어노테이션을 사용할 때 매개변수 이름을 명시적으로 지정해주는 것이 좋습니다.
+
+```java
+@RequestMapping("/api/article")
+public ResponseEntity<Article> getArticle(@RequestParam(name = "articleId") Long articleId) {
+    // 로직
+}
+```
+
+이렇게 명시적으로 매개변수 이름을 제공하면 Spring이 이를 잘 처리할 수 있습니다.
+
+### 결론
+
+이 문제를 해결하려면, Java 컴파일러가 메서드의 파라미터 이름을 포함하도록 `-parameters` 옵션을 추가하거나, Spring에서 사용하는 어노테이션들(`@RequestParam`, `@PathVariable`)에 명시적으로 파라미터 이름을 지정해줘야 합니다.
+## long (원시 타입)과 Long (래퍼 클래스)의 차이점
+알겠습니다! 문제의 원인을 **`Long`** (래퍼 클래스) 사용 시 발생한 문제로 이해하셨군요. 그럼 이제 문제를 제대로 설명드리겠습니다.
+
+### **`Long` (래퍼 클래스) 사용 시 발생할 수 있는 문제:**
+
+자바에서 `Long`은 **객체**입니다. 객체로서 유연성은 있지만, **Spring**이나 **리플렉션**(Reflection) 환경에서 문제가 발생할 수 있습니다.
+
+### **문제가 발생한 이유:**
+에러 메시지를 보면 **`Long`** 타입의 파라미터에 대한 **매개변수 이름 정보가 없어서** 문제가 발생한 것 같습니다.
+
+#### **문제 설명:**
+- Spring MVC와 같은 프레임워크에서는 HTTP 요청 파라미터를 **메소드 파라미터**에 바인딩하려고 시도합니다.
+- **원시 타입**인 `long`은 Spring이 바인딩하기에 문제가 없지만, **래퍼 클래스**인 `Long`을 사용할 때는 문제가 발생할 수 있습니다.
+- **리플렉션**(Reflection)은 매개변수 이름을 가져오는 데 어려움이 있을 수 있습니다. 특히 **`-parameters`** 플래그가 컴파일 시 활성화되지 않으면 리플렉션에서 매개변수 이름 정보를 가져올 수 없습니다.
+- 그래서 **`Long`**을 사용할 때는 매개변수 이름을 찾을 수 없어 `IllegalArgumentException`이 발생합니다.
+
+#### **간단히 말해:**
+Spring이 `Long` 타입의 매개변수를 처리하려고 할 때, 리플렉션을 통해 매개변수 이름을 가져오려 하는데, 컴파일 시 **`-parameters`** 플래그가 활성화되지 않아서 매개변수 이름을 찾을 수 없어 오류가 발생하는 것입니다.
+
+### **문제 해결 방법:**
+
+#### 1. **컴파일 시 `-parameters` 플래그 활성화:**
+이 문제를 해결하려면, **컴파일 시 `-parameters` 플래그**를 활성화하여 매개변수 이름이 리플렉션을 통해 사용 가능하도록 해야 합니다.
+
+- **Maven**을 사용하고 있다면, `pom.xml`에 다음을 추가하세요:
+
+```xml
+<plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+            <compilerArgument>-parameters</compilerArgument>
+        </configuration>
+    </plugin>
+</plugins>
+```
+
+- **Gradle**을 사용하고 있다면, `build.gradle`에 다음을 추가하세요:
+
+```gradle
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters"
+}
+```
+
+이렇게 하면 컴파일 시 매개변수 이름 정보가 포함되어, Spring이 이를 리플렉션으로 처리할 수 있게 됩니다.
+
+#### 2. **`Long` 대신 `long` 사용하기:**
+만약 `null` 값을 다룰 필요가 없다면, **`Long`** 대신 **원시 타입 `long`**을 사용하면 문제가 해결됩니다. `long`은 Spring이 바인딩할 때 리플렉션 문제를 일으키지 않기 때문에 더 간편합니다.
+
+예시:
+```java
+@RequestMapping("/article")
+public ResponseEntity<Article> getArticle(@RequestParam long articleId) {
+    // `Long` 대신 `long`을 사용
+}
+```
+
+### **결론:**
+- **`Long` (래퍼 클래스)**: 리플렉션에서 매개변수 이름을 찾을 수 없어서 오류가 발생할 수 있습니다.
+- **`long` (원시 타입)**: 리플렉션 문제 없이 Spring이 매개변수를 바로 바인딩할 수 있습니다.
+- **해결 방법**: 컴파일 시 **`-parameters`** 플래그를 활성화하거나, `Long` 대신 `long`을 사용하여 문제를 피할 수 있습니다.
+
+`null` 값을 다룰 필요가 없다면, `long`을 사용하는 것이 더 안전하고 간단한 방법입니다.
+
+
+## 나는 Reflection에 대서 궁금해졌다.
+
+### **Java Reflection (리플렉션) 요약**
+
+Java에서 **리플렉션**은 프로그램이 **런타임(runtime)** 중에 자신의 구조를 **검사(inspect)**하고 **조작(manipulate)**할 수 있는 능력입니다. 즉, 컴파일 시 알 수 없는 정보를 프로그램 실행 중에 얻고, 그 정보를 바탕으로 동적으로 객체를 생성하거나 메서드를 호출하는 등의 작업을 할 수 있습니다.
+
+### **리플렉션의 주요 기능:**
+
+1. **클래스 정보 접근:**
+   리플렉션을 사용하면 클래스의 메서드, 필드, 생성자 등을 런타임에 검사할 수 있습니다. 예를 들어 `Class` 객체를 통해 클래스의 정보를 얻을 수 있습니다.
+
+   ```java
+   Class<?> clazz = MyClass.class;  // 또는 Class.forName("MyClass")
+   System.out.println("클래스 이름: " + clazz.getName());
+   ```
+
+2. **동적으로 객체 생성:**
+   클래스가 런타임 시 결정될 때 `newInstance()` 또는 `Constructor` 객체를 사용하여 동적으로 객체를 생성할 수 있습니다.
+
+   ```java
+   Class<?> clazz = Class.forName("com.example.MyClass");
+   Object obj = clazz.getConstructor().newInstance();
+   ```
+
+3. **동적으로 메서드 호출:**
+   클래스의 메서드를 런타임에 동적으로 호출할 수 있습니다. 예를 들어 메서드 이름이나 매개변수가 컴파일 시 알 수 없을 때 유용합니다.
+
+   ```java
+   Method method = clazz.getMethod("myMethod", String.class);
+   method.invoke(obj, "some argument");
+   ```
+
+4. **필드 접근 및 수정:**
+   리플렉션을 사용하면 클래스의 **private** 필드에 접근하거나 값을 수정할 수 있습니다.
+
+   ```java
+   Field field = clazz.getDeclaredField("someField");
+   field.setAccessible(true); // private 필드 접근 허용
+   field.set(obj, "new value");
+   ```
+
+### **리플렉션이 유용한 이유:**
+- **동적 동작**: 프레임워크와 라이브러리에서는 런타임에 객체의 클래스를 동적으로 처리해야 할 경우가 많습니다. Spring, Hibernate와 같은 프레임워크에서 주로 사용됩니다.
+- **테스트 및 디버깅**: 테스트에서 private 메서드나 필드를 테스트해야 할 때 유용하게 사용됩니다.
+- **라이브러리/프레임워크 코드**: 사용자 정의 클래스가 다를 수 있기 때문에, 코드에서 직접적으로 클래스를 지정하지 않고 리플렉션을 통해 클래스 구조를 처리할 수 있습니다.
+
+### **리플렉션의 단점:**
+- **성능 저하**: 리플렉션은 런타임 중에 클래스를 분석하고 메서드를 호출하기 때문에 일반적인 메서드 호출보다 성능이 저하될 수 있습니다.
+- **보안 문제**: private 메서드나 필드에 접근할 수 있기 때문에 보안상 위험할 수 있습니다.
+- **복잡성 증가**: 리플렉션은 컴파일 시 타입을 알 수 없기 때문에, 코드의 가독성과 유지보수성이 떨어질 수 있습니다.
+
+### **리플렉션 예시:**
+`MyClass`라는 클래스에 private 필드가 있을 때, 리플렉션을 사용하여 해당 필드를 접근하는 예시입니다.
+
+```java
+class MyClass {
+    private String secret = "Reflection is powerful!";
+}
+
+public class ReflectionExample {
+    public static void main(String[] args) throws Exception {
+        // MyClass 객체 생성
+        MyClass myClass = new MyClass();
+        
+        // private 필드에 리플렉션을 통해 접근
+        Field field = MyClass.class.getDeclaredField("secret");
+        field.setAccessible(true);  // private 필드에 접근 허용
+        String secretValue = (String) field.get(myClass);
+        
+        System.out.println("The secret is: " + secretValue);
+    }
+}
+```
+
+### **결론:**
+리플렉션은 자바에서 프로그램이 런타임 시 자신의 구조를 동적으로 검사하고 수정할 수 있게 해주는 강력한 기능입니다. 하지만 성능, 보안, 유지보수성의 문제로 인해 신중하게 사용해야 하며, 필요할 때만 사용하는 것이 좋습니다.
+### **Java Reflection과 Spring Reflection의 차이점**
+
+**Java Reflection**과 **Spring Reflection**은 기본적으로 동일한 리플렉션 기술을 사용하지만, **사용되는 맥락과 목적**에서 차이가 있습니다. 여기서 말하는 **Spring Reflection**은 Spring Framework에서 리플렉션을 활용하는 방식과 관련이 있습니다. 이를 좀 더 구체적으로 설명하겠습니다.
+
+### **1. Java Reflection**
+- **Java Reflection**은 **자바 언어 자체**에서 제공하는 기능으로, **런타임**에 클래스, 메서드, 필드 등을 동적으로 **조회, 수정, 호출**할 수 있게 해줍니다.
+- **목적**: 프로그램이 실행 중에 자신의 구조를 **동적으로 확인**하거나 **수정**할 수 있도록 합니다.
+- **주요 사용 사례**:
+    - 런타임에 클래스를 동적으로 로드하고, 메서드를 호출하거나 필드를 변경할 때 사용됩니다.
+    - 예를 들어, 개발자가 특정 클래스를 미리 알지 못한 상태에서 객체를 생성하거나 메서드를 호출할 때 유용합니다.
+
+### **2. Spring Reflection**
+- **Spring Reflection**은 **Spring Framework** 내에서 **리플렉션 기능을 더 효율적으로** 사용하기 위해 제공되는 방식입니다. Spring은 리플렉션을 활용하여 많은 기능을 제공합니다.
+- **목적**: Spring의 다양한 기능들을 자동화하고, **의존성 주입(DI)**, **AOP(Aspect-Oriented Programming)**, **데이터 바인딩**, **빈 관리** 등의 과정에서 **리플렉션을 내부적으로** 사용하여 유연하고 동적인 처리 방식을 제공합니다.
+- **주요 사용 사례**:
+    - **DI(Dependency Injection)**: Spring은 클래스 간의 의존성을 설정할 때 리플렉션을 사용하여 객체를 동적으로 생성하고 주입합니다.
+    - **빈(Bean) 관리**: Spring 컨테이너는 리플렉션을 통해 빈의 메서드를 호출하고, 필드를 주입합니다.
+    - **AOP**: 리플렉션을 사용하여 메서드 호출 전후에 **Aspect**를 적용하고, 트랜잭션 관리와 같은 다양한 기능을 동적으로 처리합니다.
+
+### **차이점 정리**
+
+| **특징**                | **Java Reflection**                                      | **Spring Reflection**                                |
+|----------------------|---------------------------------------------------------|--------------------------------------------------|
+| **사용 맥락**           | Java 언어 자체에서 제공하는 기능                              | Spring Framework에서 리플렉션을 활용한 기능 처리           |
+| **주요 목적**            | 프로그램이 런타임 시에 동적으로 클래스 및 객체의 정보를 확인하고 수정 | Spring의 DI, AOP, 빈 관리 등의 기능을 내부적으로 처리         |
+| **주요 사용 사례**        | 클래스 동적 로딩, 메서드 호출, 필드 수정 등                           | 의존성 주입(DI), 트랜잭션 관리, 메서드 호출, 자동화된 빈 관리 등 |
+| **주요 특징**            | 리플렉션 API를 직접 사용해야 하며, 비교적 복잡할 수 있음               | Spring이 자동으로 리플렉션을 처리해주므로 사용자가 직접 리플렉션을 사용하지 않음 |
+| **성능**                | 직접 리플렉션을 사용하면 성능이 저하될 수 있음                         | Spring이 리플렉션을 적절히 관리하므로 성능 최적화가 되어 있음  |
+
+### **예시**
+- **Java Reflection 예시**:
+  ```java
+  // Java Reflection을 사용하여 객체의 필드에 접근하고 수정
+  Class<?> clazz = MyClass.class;
+  Field field = clazz.getDeclaredField("secret");
+  field.setAccessible(true);
+  String secretValue = (String) field.get(myClass);
+  ```
+
+- **Spring Reflection 예시**:
+  Spring에서는 리플렉션을 직접 사용하지 않고, 의존성 주입 등을 통해 리플렉션을 간접적으로 활용합니다.
+  ```java
+  @Service
+  public class MyService {
+      @Autowired
+      private MyRepository myRepository;  // Spring이 리플렉션을 통해 자동으로 주입해줌
+  }
+  ```
+
+### **결론**
+- **Java Reflection**은 주로 런타임에 클래스를 동적으로 검사하거나 수정할 수 있는 기술입니다.
+- **Spring Reflection**은 Spring에서 의존성 주입, AOP, 빈 관리 등의 기능을 구현하기 위해 **내부적으로 Java Reflection**을 활용하는 방식입니다. 사용자는 Spring에서 제공하는 자동화된 기능 덕분에 리플렉션을 직접 다루지 않아도 됩니다.

@@ -54,7 +54,7 @@ class BlogControllerTest {
         final String url = "/api/articles";
         final String title = "title";
         final String content = "content";
-        final AddArticleRequest userRequest = new AddArticleRequest(title,content);
+        final AddArticleRequest userRequest = new AddArticleRequest(title, content);
 
         // 객체 JSON으로 직렬화
         final String requestBody = objectMapper.writeValueAsString(userRequest);
@@ -78,7 +78,7 @@ class BlogControllerTest {
         assertThat(articles.get(0).getContent()).isEqualTo(content);
     }
 
-    @DisplayName("addArticle : 블로그 글 조회에 성공한다. ")
+    @DisplayName("findAllArticles : 블로그 글 목록 조회에 성공한다. ")
     @Test
     public void findAllArticles() throws Exception {
         // when
@@ -101,9 +101,30 @@ class BlogControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].content").value(content))
                 .andExpect(jsonPath("$[0].title").value(title));
+    }
 
-        List<Article> articles = blogRepository.findAll();
+    @DisplayName("findArticles : 블로그 글 조회에 성공한다. ")
+    @Test
+    public void findArticles() throws Exception {
+        // when
+        final String url = "/api/articles/{id}";
+        final String title = "title";
+        final String content = "content";
 
+         Article saveArticle = blogRepository.save(Article.builder()
+                .title(title)
+                .content(content)
+                .build());
+
+        //when
+        // 설정한 내용을 바탕으로 요청 전송
+        final ResultActions resultActions = mockMvc.perform(get(url, saveArticle.getId()));
+
+        // then
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").value(content))
+                .andExpect(jsonPath("$.title").value(title));
 
     }
 }
