@@ -615,3 +615,292 @@ public class Product {
 - 다른 Lombok 어노테이션(`@Getter`, `@Setter`, `@NoArgsConstructor` 등)과 조합하여 데이터 클래스를 간편하게 만들 수 있습니다.
 - 여기에는 내가 궁금했던 toString() 메소드는 생성하지 않는다고 한다.
 
+### application.yml이란?
+`application.yml` (또는 `application.properties`)은 Spring Boot 애플리케이션에서 다양한 설정을 정의하는 구성 파일입니다. "Blank standard"라는 것은 `application.yml` 파일이 기본적으로 빈 템플릿이 아니라는 의미입니다. 이 파일은 데이터베이스 연결, 서버 포트, 로깅 설정, 보안 설정, JPA 설정 등 여러 설정을 지정하는 데 사용됩니다. YAML (YAML Ain't Markup Language) 형식을 사용하며, 사람에게 읽기 쉬운 데이터 형식으로 주로 설정 파일에 사용됩니다.
+
+### `application.yml`의 일반적인 구조:
+
+```yaml
+server:
+  port: 8080  # 애플리케이션이 실행될 포트
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb  # 데이터베이스 URL (H2 메모리 DB 예시)
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update  # 엔티티에 맞춰 자동으로 스키마를 업데이트
+    show-sql: true  # SQL 쿼리를 로그에 표시
+    properties:
+      hibernate:
+        format_sql: true  # SQL 쿼리를 사람이 읽기 쉽게 포맷
+        defer-datasource-initialization: true
+  h2:
+    console:
+      enabled: true  # H2 콘솔을 활성화하여 수동으로 데이터베이스를 다룰 수 있게 함
+
+logging:
+  level:
+    org.springframework: INFO  # Spring 패키지의 로그 레벨
+    com.example: DEBUG  # 특정 애플리케이션 패키지의 로그 레벨
+
+# 사용자 정의 설정 예시
+myapp:
+  customProperty: "some value"
+```
+
+### `application.yml`의 주요 섹션:
+
+1. **`server`**:
+    - 웹 서버와 관련된 설정을 정의합니다. 예를 들어 애플리케이션이 실행될 포트를 지정할 수 있습니다.
+
+   예시:
+   ```yaml
+   server:
+     port: 8080
+   ```
+
+2. **`spring`**:
+    - Spring Boot와 관련된 주요 설정입니다. 데이터베이스 설정(`datasource`), JPA 설정(`jpa`), 보안, 캐시, 메시징 등 다양한 설정을 포함합니다.
+
+   예시:
+   ```yaml
+   spring:
+     datasource:
+       url: jdbc:h2:mem:testdb  # 메모리 기반 H2 데이터베이스
+   ```
+
+3. **`logging`**:
+    - 로깅 설정을 정의합니다. 특정 패키지의 로그 레벨을 설정할 수 있습니다.
+
+   예시:
+   ```yaml
+   logging:
+     level:
+       org.springframework: INFO
+       com.example: DEBUG
+   ```
+
+4. **사용자 정의 설정**:
+    - 사용자 정의 속성을 추가할 수 있으며, 애플리케이션 코드에서 이를 참조할 수 있습니다.
+
+   예시:
+   ```yaml
+   myapp:
+     customProperty: "some value"
+   ```
+
+### `application.yml`은 표준 파일인가?
+
+네, `application.yml`은 Spring Boot의 표준 구성 파일입니다. 하지만 필수는 아니며, `application.properties`를 사용할 수도 있습니다. 둘 다 동일한 목적을 가지고 있지만, `application.yml`은 중첩된 구조를 통해 복잡한 구성을 더 쉽게 읽고 유지할 수 있게 해줍니다.
+
+### `application.yml`과 `application.properties` 비교
+
+1. **YAML** (`application.yml`)은 더 중첩되고 사람이 읽기 쉬운 구조를 제공합니다:
+   ```yaml
+   spring:
+     datasource:
+       url: jdbc:h2:mem:testdb
+       username: sa
+       password: password
+   ```
+
+2. **Properties** (`application.properties`)는 평평한 키-값 구조입니다:
+   ```properties
+   spring.datasource.url=jdbc:h2:mem:testdb
+   spring.datasource.username=sa
+   spring.datasource.password=password
+   ```
+
+둘 중 어떤 형식을 선택할지는 자유지만, Spring Boot에서는 `application.yml`을 사용하는 것이 더 일반적입니다. 특히 복잡한 설정을 다룰 때 읽기 좋고 관리하기 쉽기 때문입니다.
+
+### `application.yml`에서 자주 발생하는 오류
+
+1. **들여쓰기 오류**: YAML은 들여쓰기를 중요하게 다루며, 탭이 아닌 스페이스로 들여쓰기를 해야 합니다. 들여쓰기가 잘못되면 파싱 오류가 발생할 수 있습니다.
+    - 올바른 예:
+      ```yaml
+      spring:
+        datasource:
+          url: jdbc:h2:mem:testdb
+      ```
+    - 잘못된 예:
+      ```yaml
+      spring:
+      datasource:
+      url: jdbc:h2:mem:testdb
+      ```
+
+2. **속성 덮어쓰기**: `application.properties`와 `application.yml`을 동시에 사용하는 경우 두 파일에서 동일한 속성을 정의하면 Spring Boot가 혼동할 수 있습니다. 하나의 형식만 사용하는 것이 좋습니다.
+
+### 결론
+
+`application.yml`은 빈 템플릿이 아닌, Spring Boot의 표준 구성 파일로, 애플리케이션 설정을 정의하는 데 사용됩니다. 데이터베이스, 로깅, 서버 포트, JPA 등의 설정을 여기에서 할 수 있습니다. YAML 형식의 이점은 중첩된 구조로 더 복잡한 구성을 더 읽기 쉽고 관리하기 쉬운 방식으로 작성할 수 있다는 점입니다.
+
+### 자바 직렬화 (Serialization)와 역직렬화 (Deserialization) 란 무엇을 뜻하는가?
+- http에서는 JSON을, 자바에서는 객체를 사용한다. 하지만 서로 형식이 다르기 때문에 형식에 맞게 변환하는 작업이 필요하다.
+- 이런 작업들을 직렬화 , 역직렬화라고 한다.
+- 직렬화란 자바 시스템 내부에서 사용되는 개체를 외부에서 사용하도록 데이터를 변환하는 작업을 말한다.
+- 역직렬화란 직렬화의 반대로써 외부에서 들어오는 데이터를 자바의 객체 형태로 변환하는 작업을 이야기 한다. json 형식의 값을 자바 객체에 맞게 변환하는 것도 역직렬화입니다.
+  **직렬화(Serialization)**와 **역직렬화(Deserialization)**는 데이터를 저장하거나 전송하기 위해 구조를 변환하는 과정을 의미합니다. 이 개념은 주로 객체 지향 프로그래밍에서 사용됩니다. 각각을 자세히 설명하면 다음과 같습니다.
+
+### 1. **직렬화 (Serialization)**
+
+직렬화는 **객체**를 **바이트 스트림**이나 **문자열 형식**으로 변환하는 과정입니다. 주로 네트워크 전송, 파일 저장, 또는 다른 시스템 간에 객체를 전달할 때 사용됩니다. 직렬화를 통해 객체를 쉽게 전송하거나 저장할 수 있게 됩니다.
+
+예를 들어, Java에서 `Serializable` 인터페이스를 구현한 객체는 `ObjectOutputStream`을 사용하여 파일로 저장하거나 네트워크를 통해 전송할 수 있습니다.
+
+- **목적**: 객체를 저장하거나 전송하기 위해 객체의 상태를 바이트 형식으로 변환
+- **예시**: 객체 -> 바이트 스트림 (파일, 네트워크로 전송)
+
+#### 예시 (Java에서 직렬화):
+```java
+import java.io.*;
+
+class Person implements Serializable {
+    String name;
+    int age;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Person person = new Person("John", 30);
+
+        // 직렬화
+        FileOutputStream fileOut = new FileOutputStream("person.ser");
+        ObjectOutputStream out = new ObjectOutputStream(fileOut);
+        out.writeObject(person);
+        out.close();
+        fileOut.close();
+    }
+}
+```
+
+### 2. **역직렬화 (Deserialization)**
+
+역직렬화는 **직렬화된 데이터**를 다시 **원래의 객체**로 변환하는 과정입니다. 직렬화된 데이터를 파일에서 읽거나 네트워크로부터 받은 데이터를 원래 객체로 복원하는 데 사용됩니다.
+
+- **목적**: 직렬화된 데이터를 다시 객체로 복원
+- **예시**: 바이트 스트림 -> 객체 (파일에서 읽거나 네트워크에서 수신)
+
+#### 예시 (Java에서 역직렬화):
+```java
+import java.io.*;
+
+class Person implements Serializable {
+    String name;
+    int age;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // 역직렬화
+        FileInputStream fileIn = new FileInputStream("person.ser");
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        Person person = (Person) in.readObject();
+        in.close();
+        fileIn.close();
+
+        System.out.println("Name: " + person.name);
+        System.out.println("Age: " + person.age);
+    }
+}
+```
+
+### 직렬화와 역직렬화의 사용 예:
+
+- **파일 저장**: 객체를 파일에 저장하고 나중에 그 파일을 읽어서 객체를 복원하는 경우.
+- **네트워크 통신**: 네트워크를 통해 객체를 전송하는 경우, 객체를 직렬화하여 전송하고, 수신한 측에서는 역직렬화를 통해 객체로 변환.
+- **세션 관리**: 웹 애플리케이션에서 사용자 세션 데이터를 직렬화하여 저장하고, 사용자가 다시 방문할 때 세션 데이터를 역직렬화하여 복원.
+
+### 요약:
+- **직렬화 (Serialization)**: 객체를 바이트 스트림이나 문자열로 변환
+- **역직렬화 (Deserialization)**: 직렬화된 데이터를 다시 객체로 복원
+
+이 두 개념은 주로 데이터를 저장하거나 전송할 때 사용되며, 객체의 상태를 보존하는 중요한 과정입니다.
+
+### Spring Boot에서 MockMvc은 무슨 역할 하는가?
+이 코드는 Spring Boot에서 **MockMvc**를 사용하여 **REST API** 테스트를 수행하는 예시입니다. **MockMvc**는 Spring MVC의 요청 및 응답을 테스트할 때 사용되는 도구로, 실제 서버를 실행하지 않고 HTTP 요청을 테스트할 수 있게 도와줍니다.
+
+코드를 단계별로 분석해보겠습니다.
+
+### 1. **변수 설정**
+```java
+final String url = "/api/articles";
+final String title = "title";
+final String content = "content";
+final AddArticleRequest userRequest = new AddArticleRequest(title, content);
+```
+- `url`: 테스트할 REST API의 엔드포인트입니다. 여기서는 `/api/articles`에 POST 요청을 보낼 예정입니다.
+- `title`과 `content`: 테스트용으로 사용할 제목과 내용 값입니다.
+- `userRequest`: `AddArticleRequest` 객체를 생성하는데, 이 객체는 아마도 REST API 요청 본문에 포함될 데이터를 담고 있을 것입니다. `title`과 `content` 값이 이 객체에 전달됩니다.
+
+### 2. **객체를 JSON으로 직렬화**
+```java
+final String requestBody = objectMapper.writeValueAsString(userRequest);
+```
+- `objectMapper`: Jackson의 `ObjectMapper`를 사용하여 Java 객체를 JSON 문자열로 변환합니다.
+- `writeValueAsString(userRequest)`: `userRequest` 객체를 JSON 문자열로 직렬화하여 `requestBody` 변수에 저장합니다.
+    - `userRequest` 객체는 `{ "title": "title", "content": "content" }`와 같은 형태의 JSON으로 변환됩니다.
+
+### 3. **POST 요청 전송**
+```java
+ResultActions result = mockMvc.perform(post(url)
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .content(requestBody));
+```
+- `mockMvc.perform(...)`: `mockMvc` 객체를 사용하여 HTTP 요청을 시뮬레이션합니다.
+    - `post(url)`: `/api/articles` URL로 POST 요청을 보냅니다.
+    - `.contentType(MediaType.APPLICATION_JSON_VALUE)`: 요청의 콘텐츠 타입을 `application/json`으로 설정합니다. 즉, 요청 본문이 JSON 형식임을 나타냅니다.
+    - `.content(requestBody)`: 요청 본문에 직렬화된 `requestBody`를 넣습니다.
+
+### 4. **응답 상태 코드 검증**
+```java
+result.andExpect(status().isCreated());
+```
+- `andExpect(status().isCreated())`: 응답 상태 코드가 `201 Created`인지 확인합니다.
+    - 이 상태 코드는 요청이 성공적으로 처리되어 리소스가 생성되었음을 나타냅니다.
+
+### 5. **저장된 데이터 검증**
+```java
+List<Article> articles = blogRepository.findAll();
+assertThat(articles.size()).isEqualTo(1);
+assertThat(articles.get(0).getTitle()).isEqualTo(title);
+assertThat(articles.get(0).getContent()).isEqualTo(content);
+```
+- `blogRepository.findAll()`: `blogRepository`를 사용하여 데이터베이스에서 모든 `Article` 엔티티를 조회합니다. 이 테스트에서는 새로운 글이 하나 생성되어야 하므로, 글 목록의 크기가 1이어야 합니다.
+- `assertThat(articles.size()).isEqualTo(1)`: `articles` 리스트의 크기가 1인지 확인합니다. 즉, 데이터베이스에 하나의 `Article` 객체가 저장되었는지 검증합니다.
+- `assertThat(articles.get(0).getTitle()).isEqualTo(title)`: 첫 번째 `Article` 객체의 제목이 `title` 변수와 일치하는지 확인합니다.
+- `assertThat(articles.get(0).getContent()).isEqualTo(content)`: 첫 번째 `Article` 객체의 내용이 `content` 변수와 일치하는지 확인합니다.
+
+### 전체적으로 무엇을 하는 코드인가?
+
+이 코드는 **`/api/articles`**라는 엔드포인트로 **POST** 요청을 보내는 테스트를 작성한 것입니다. 요청 본문에는 **`title`**과 **`content`** 값이 포함된 JSON 데이터를 담아 보냅니다.
+
+- 요청이 성공적으로 처리되어 `201 Created` 상태 코드가 응답되어야 하며,
+- `Article` 객체가 데이터베이스에 하나 추가되고,
+- 그 객체의 `title`과 `content`가 정확히 요청한 값과 일치하는지 검증하는 과정입니다.
+
+### 테스트의 목적:
+- **POST 요청의 성공 여부 확인**: API가 새로운 기사를 생성하는지 테스트합니다.
+- **데이터베이스 상태 검증**: 실제로 데이터베이스에 데이터가 삽입되었는지, 삽입된 데이터가 올바른지 검증합니다.
+
+### 전체 흐름:
+1. **요청 준비**: `AddArticleRequest` 객체를 생성하여 JSON 형식으로 직렬화합니다.
+2. **요청 전송**: `mockMvc`를 사용해 `POST /api/articles` 요청을 시뮬레이션합니다.
+3. **응답 검증**: 응답 상태 코드가 `201 Created`인지 확인합니다.
+4. **데이터베이스 검증**: `Article` 데이터베이스에 새로운 데이터가 저장되었는지 확인하고, 저장된 데이터가 요청한 값과 일치하는지 검증합니다.
+
+이와 같은 테스트는 API의 동작이 예상대로 이루어지는지, 데이터가 제대로 저장되는지 확인하는 데 유용합니다.
