@@ -2,9 +2,11 @@ package com.springboot.blog.service;
 
 import com.springboot.blog.domain.Article;
 import com.springboot.blog.dto.AddArticleRequest;
+import com.springboot.blog.dto.UpdateArticleRequest;
 import com.springboot.blog.repository.BlogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,10 +18,17 @@ public class BlogService {
     private final BlogRepository blogRepository;
 
     // 블로그 글 추가 메서드
+@Transactional
     public Article save(AddArticleRequest request) {
         return blogRepository.save(request.toEntity());
     }
-
+@Transactional
+    public Article update(Long id , UpdateArticleRequest request) {
+        Article article = blogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found :" + id));
+        article.update(request.getTitle(), request.getContent());
+        return article;
+    }
     public List<Article> findAll() {
         return blogRepository.findAll();
     }

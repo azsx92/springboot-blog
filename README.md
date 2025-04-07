@@ -1149,3 +1149,7 @@ public class ReflectionExample {
 ### **결론**
 - **Java Reflection**은 주로 런타임에 클래스를 동적으로 검사하거나 수정할 수 있는 기술입니다.
 - **Spring Reflection**은 Spring에서 의존성 주입, AOP, 빈 관리 등의 기능을 구현하기 위해 **내부적으로 Java Reflection**을 활용하는 방식입니다. 사용자는 Spring에서 제공하는 자동화된 기능 덕분에 리플렉션을 직접 다루지 않아도 됩니다.
+
+### @Transactional
+- @Transactional 애너테이션 이란 매칭한 메서드를 하나의 트랜잭션으로 묶는 역할을 한다.
+- transaction 이란 데이터 베이스의 데이터를 바꾸기 위해 묶는 작업의 단위
