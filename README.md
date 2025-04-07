@@ -182,3 +182,100 @@ https://www.example.com/index.html
   - 앞서 동사는 http 메서드라는 것으로 해결한다.
   - 이외에도 슬래시는 계층 관계를 나타내ㅡㄴ 데 사용하거나, 밑줄 대신 하이픈을 사용하거나
   - ,자원의 종류가 컬렉션인지 도큐먼트인지에 따라 단수, 복수를 나누거나 하는 등의 규칙이 있지만 지금 당장은 여기까지만 알도록 하자.
+
+### JPA의 entity는 왜 protected로 생성자를 만들어야 하는가?
+- 갑자기 궁금해졌다.
+  JPA에서 엔티티 클래스에 **기본 생성자**를 **`protected`**로 만드는 이유는 JPA가 엔티티 객체를 **반사(reflection)** 방식으로 생성하기 때문입니다. JPA는 엔티티 클래스의 객체를 생성할 때, **`new`** 키워드를 사용하여 기본 생성자를 호출합니다. 그리고 이 생성자는 일반적으로 **객체를 불변 객체로 만들기 위해**, 또는 **JPA 프레임워크가 엔티티 객체를 내부적으로 다루기 위해** `protected`나 **`private`**로 설정하는 것이 관례입니다.
+
+### 기본 생성자를 `protected`로 설정하는 이유:
+
+1. **JPA의 내부 사용을 위한 제한**
+  - JPA는 객체를 생성할 때 `new` 키워드를 통해 기본 생성자를 호출합니다. 이 때 기본 생성자는 외부에서 직접 호출되지 않도록 `protected`나 `private`로 설정하는 것이 안전합니다.
+  - 엔티티 클래스의 객체는 애플리케이션의 비즈니스 로직에서 직접 `new` 키워드로 생성하는 것보다는, JPA가 관리하는 방식으로 생성되어야 하기 때문에 기본 생성자를 외부에서 호출할 수 없도록 하는 것이 좋습니다.
+
+2. **객체 생성의 제어**
+  - `protected`로 기본 생성자를 선언하면, 외부에서는 해당 생성자를 직접 호출할 수 없고, 같은 패키지 내 또는 상속받은 클래스에서만 사용할 수 있습니다. 이를 통해 객체 생성의 제어가 가능합니다. 예를 들어, 엔티티가 **불변 객체**로 설계되어야 한다면, 엔티티 객체를 애플리케이션 코드에서 직접 생성할 수 없게 제한할 수 있습니다.
+
+3. **상속을 위한 필요성**
+  - JPA는 기본 생성자를 사용하는데, 이 생성자가 `protected`로 선언되면 다른 클래스에서 상속받아서 엔티티를 사용할 때에도 문제가 되지 않습니다. 예를 들어, 엔티티가 `@Inheritance` 전략을 사용하여 상속 관계를 가지는 경우, 기본 생성자가 `protected`이면 자식 클래스에서 해당 생성자를 사용할 수 있습니다.
+
+### 예시
+
+```java
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+
+@Entity
+public class Product {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    
+    // JPA는 기본 생성자를 호출할 때 reflection을 사용하므로, public이 아니라 protected로 설정
+    protected Product() {
+        // JPA의 기본 생성자
+    }
+
+    public Product(String name) {
+        this.name = name;
+    }
+
+    // getters and setters
+}
+```
+
+### 요약
+
+- **`protected` 기본 생성자**: JPA가 내부적으로 객체를 생성할 때 사용하기 위한 용도로, 외부에서 객체를 임의로 생성하는 것을 방지합니다.
+- **`public` 기본 생성자**: 만약 기본 생성자가 `public`으로 설정되면, JPA 외부에서 객체를 자유롭게 생성할 수 있기 때문에 엔티티 객체가 불완전하게 생성될 위험이 있습니다.
+
+JPA의 설계 원칙상, 엔티티는 프레임워크가 제어하는 객체이므로, 기본 생성자는 `protected`로 두는 것이 가장 안전하고 권장되는 방식입니다.
+
+### NoArgsConstructor 는 어떻게 기본 생성자를 제어하는가?
+`@NoArgsConstructor` 어노테이션은 **롬복(Lombok)** 라이브러리에서 제공하는 어노테이션으로, **기본 생성자**를 자동으로 생성해주는 역할을 합니다. 이때 생성되는 기본 생성자는 **`protected`**일 수도 있고, **`public`**일 수도 있으며, 이는 `@NoArgsConstructor` 어노테이션을 사용할 때의 설정에 따라 달라집니다.
+
+### `@NoArgsConstructor`의 기본 동작
+
+기본적으로, `@NoArgsConstructor`는 **`public`** 접근 제어자를 가진 기본 생성자를 생성합니다. 예를 들어:
+
+```java
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+public class Product {
+    private Long id;
+    private String name;
+}
+```
+
+위의 코드에서 `@NoArgsConstructor`를 사용하면, Lombok이 **`public Product()`** 기본 생성자를 자동으로 생성합니다. 즉, 이 기본 생성자는 외부에서 호출할 수 있습니다.
+
+### `@NoArgsConstructor`의 `access` 옵션
+
+`@NoArgsConstructor`는 `access` 속성을 제공하여 생성자의 접근 제어자를 설정할 수 있습니다. 이를 통해 기본 생성자를 `protected`로 설정할 수 있습니다.
+
+예를 들어:
+
+```java
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+public class Product {
+    private Long id;
+    private String name;
+}
+```
+
+위와 같이 `access = lombok.AccessLevel.PROTECTED`로 설정하면, Lombok이 생성하는 기본 생성자는 **`protected`**가 됩니다. 이렇게 설정하면, JPA와 같이 **외부에서 기본 생성자를 직접 호출하지 못하게** 할 수 있습니다.
+
+### 요약
+
+- 기본적으로 `@NoArgsConstructor`는 **`public`** 기본 생성자를 생성합니다.
+- `@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)`와 같이 설정하면, **`protected`** 기본 생성자를 생성할 수 있습니다.
+- **`@NoArgsConstructor`는 Lombok에서 제공하는 기능으로, 기본 생성자를 자동으로 생성해주고, 이를 통해 코드가 더 간결해집니다.**
+
+따라서, JPA와 같은 경우에는 기본 생성자를 `protected`로 설정하고 싶다면 `@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)`를 사용하는 것이 적합합니다.
