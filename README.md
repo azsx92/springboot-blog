@@ -279,3 +279,225 @@ public class Product {
 - **`@NoArgsConstructor`는 Lombok에서 제공하는 기능으로, 기본 생성자를 자동으로 생성해주고, 이를 통해 코드가 더 간결해집니다.**
 
 따라서, JPA와 같은 경우에는 기본 생성자를 `protected`로 설정하고 싶다면 `@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)`를 사용하는 것이 적합합니다.
+
+### JpaRepository<Article, Long> 는 어떻게 동작을 하는가?
+`JpaRepository<Article, Long>`는 **Spring Data JPA**에서 제공하는 **리포지토리** 인터페이스로, **JPA 엔티티**에 대한 기본적인 CRUD (Create, Read, Update, Delete) 작업을 자동으로 제공하는 역할을 합니다.
+
+`JpaRepository`는 `Repository` 인터페이스를 확장하고, `CrudRepository`와 `PagingAndSortingRepository`를 포함한 다양한 인터페이스를 상속받습니다. 그로 인해 **기본적인 CRUD 기능**뿐만 아니라 **페이징 및 정렬 기능**도 제공하며, 엔티티 클래스와 기본 키 타입을 명시적으로 지정할 수 있습니다.
+
+### 작동 방식
+
+1. **제네릭 타입**: `JpaRepository<Article, Long>`
+  - `Article`: JPA 엔티티 클래스의 타입입니다. 이 리포지토리는 `Article` 엔티티에 대한 CRUD 작업을 수행합니다.
+  - `Long`: `Article` 엔티티의 기본 키(primary key) 타입입니다. 즉, `Article` 엔티티의 기본 키가 `Long` 타입이라는 것을 명시합니다.
+
+2. **자동 구현**:
+  - Spring Data JPA는 `JpaRepository`를 **인터페이스로 선언만 해두면** 런타임 시 자동으로 구현체를 생성하여 주입해줍니다. 따라서 개발자가 `JpaRepository`를 직접 구현할 필요가 없습니다.
+  - Spring은 이 인터페이스에 정의된 메소드의 이름을 바탕으로 해당 쿼리를 자동으로 생성합니다. 예를 들어, `findById()`, `save()`, `deleteById()`와 같은 메소드들이 자동으로 구현됩니다.
+
+3. **기본적인 CRUD 기능**:
+  - `save()`: 엔티티를 저장하거나 업데이트합니다. 만약 해당 엔티티의 기본 키 값이 이미 존재하면 업데이트가 되고, 없으면 새로 저장됩니다.
+  - `findById()`: 기본 키를 사용해 엔티티를 조회합니다. 기본 키가 없으면 `Optional.empty()`를 반환합니다.
+  - `findAll()`: 모든 엔티티를 리스트 형태로 조회합니다.
+  - `deleteById()`: 기본 키를 사용하여 엔티티를 삭제합니다.
+  - `existsById()`: 주어진 ID가 존재하는지 확인합니다.
+
+4. **페이징 및 정렬 기능**:
+   `JpaRepository`는 `PagingAndSortingRepository`를 상속받기 때문에, 페이징(paging)과 정렬(sorting) 기능도 기본적으로 지원합니다.
+
+  - 예시:
+    ```java
+    Page<Article> findByTitleContaining(String title, Pageable pageable);
+    ```
+    위 메소드는 **`title`**을 포함하는 `Article`들을 **페이지 단위**로 조회하는 기능을 제공합니다. `Pageable` 객체를 통해 페이징 및 정렬 조건을 전달할 수 있습니다.
+
+5. **쿼리 메소드 생성**:
+   Spring Data JPA는 메소드 이름을 분석하여 쿼리를 자동으로 생성할 수 있습니다. 예를 들어, `findByTitle`은 `SELECT * FROM article WHERE title = ?` 쿼리로 변환됩니다.
+
+  - 예시:
+    ```java
+    List<Article> findByAuthorName(String authorName);
+    ```
+    위 메소드는 `authorName`이 일치하는 `Article`들을 조회하는 쿼리를 자동으로 생성합니다.
+
+6. **JPQL 또는 네이티브 쿼리 사용**:
+   기본적인 쿼리 메소드 외에도 **@Query** 어노테이션을 사용하여 **JPQL(Java Persistence Query Language)** 또는 **네이티브 SQL**을 직접 작성할 수 있습니다.
+
+  - 예시 (JPQL):
+    ```java
+    @Query("SELECT a FROM Article a WHERE a.title LIKE %:title%")
+    List<Article> findByTitleLike(@Param("title") String title);
+    ```
+
+  - 예시 (네이티브 SQL):
+    ```java
+    @Query(value = "SELECT * FROM article WHERE title LIKE %:title%", nativeQuery = true)
+    List<Article> findByTitleLikeNative(@Param("title") String title);
+    ```
+
+### 예시 코드
+
+```java
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface ArticleRepository extends JpaRepository<Article, Long> {
+    
+    // 기본적으로 제공되는 메소드
+    List<Article> findAll();  // 모든 Article 엔티티 조회
+    
+    // 사용자 정의 메소드 (title로 찾기)
+    List<Article> findByTitleContaining(String title);
+    
+    // 페이징 및 정렬을 위한 메소드
+    Page<Article> findByTitleContaining(String title, Pageable pageable);
+    
+    // 사용자 정의 JPQL 쿼리
+    @Query("SELECT a FROM Article a WHERE a.author.name = :authorName")
+    List<Article> findByAuthorName(@Param("authorName") String authorName);
+}
+```
+
+### 요약
+
+- `JpaRepository<Article, Long>`는 **`Article`** 엔티티에 대해 기본적인 CRUD 작업을 제공하는 리포지토리 인터페이스입니다.
+- 메소드 이름에 따라 Spring Data JPA가 자동으로 SQL 또는 JPQL 쿼리를 생성해줍니다.
+- **페이징 및 정렬**을 기본적으로 지원하며, **JPQL**이나 **네이티브 SQL**을 사용하여 복잡한 쿼리도 작성할 수 있습니다.
+- Spring은 **`JpaRepository`**를 자동으로 구현하여, 개발자가 복잡한 데이터 액세스를 처리하는 데 드는 시간을 줄여줍니다.
+
+### 여기서 나는 Spring Data JPA에 대해 궁금해졌다.
+### Spring Data JPA란?
+
+**Spring Data JPA**는 **Spring Framework**의 일부로, **Java Persistence API (JPA)**를 쉽게 사용할 수 있도록 도와주는 **추상화 레이어**를 제공합니다. **JPA**는 자바에서 객체 관계 매핑(ORM, Object-Relational Mapping)을 통해 객체와 데이터베이스 간의 상호작용을 관리하는 기술입니다. **Spring Data JPA**는 JPA를 기반으로 하여, **데이터베이스와의 상호작용**을 더 효율적이고, 간편하게 처리할 수 있도록 도와줍니다.
+
+**Spring Data JPA**의 주요 목표는 반복적인 CRUD 작업을 쉽게 처리하고, 데이터를 다룰 때 발생할 수 있는 복잡한 작업을 간단하게 해주는 것입니다. Spring은 **자동화**된 데이터 액세스 레이어를 제공하고, 엔티티 클래스를 기반으로 기본적인 CRUD 작업을 자동으로 처리해줍니다.
+
+### Spring Data JPA의 주요 특징
+
+1. **Repository 추상화**:
+  - Spring Data JPA는 `JpaRepository` 인터페이스를 제공하여 **엔티티**에 대해 기본적인 **CRUD** 작업을 손쉽게 할 수 있습니다.
+  - `JpaRepository`는 `CrudRepository`와 `PagingAndSortingRepository`를 상속하며, CRUD 외에도 **페이징**과 **정렬** 기능을 자동으로 제공합니다.
+
+2. **자동 구현**:
+  - `JpaRepository` 인터페이스를 선언만 해두면, Spring은 런타임 시 자동으로 그 구현체를 생성하고, 의존성 주입을 통해 제공해줍니다.
+  - 개발자는 `save()`, `findById()`, `delete()` 등 기본적인 CRUD 메소드만 정의하면 됩니다.
+
+3. **쿼리 메소드**:
+  - 메소드 이름만으로 쿼리 메소드를 정의할 수 있습니다. 예를 들어, `findByName` 메소드 이름은 `SELECT * FROM table WHERE name = ?`와 같은 쿼리로 변환됩니다.
+  - **쿼리 메소드**는 Spring Data JPA가 자동으로 쿼리를 생성해주므로 SQL을 직접 작성할 필요가 없습니다.
+
+4. **JPQL (Java Persistence Query Language)**:
+  - **JPQL**을 사용하여 복잡한 쿼리를 작성할 수 있습니다. JPQL은 **엔티티 객체**를 대상으로 쿼리를 작성하는 객체 지향적인 쿼리 언어입니다.
+  - JPQL은 SQL과 비슷하지만, **테이블** 대신 **엔티티 객체**를 대상으로 합니다.
+
+5. **네이티브 쿼리**:
+  - 복잡한 쿼리나 JPA의 제약을 벗어난 쿼리는 **네이티브 SQL**을 사용할 수 있습니다. `@Query` 어노테이션의 `nativeQuery` 속성을 `true`로 설정하면 네이티브 SQL을 실행할 수 있습니다.
+
+6. **페이징 및 정렬**:
+  - **페이징**과 **정렬**을 자동으로 지원합니다. `Pageable` 객체를 통해 데이터의 페이징 처리 및 정렬을 할 수 있습니다.
+
+7. **트랜잭션 관리**:
+  - **Spring Data JPA**는 Spring의 트랜잭션 관리 시스템을 기반으로 작동합니다. **@Transactional** 어노테이션을 통해 데이터베이스 작업을 트랜잭션으로 묶어서 처리할 수 있습니다.
+
+### Spring Data JPA의 구성 요소
+
+1. **Repository**:
+  - Spring Data JPA는 `Repository`라는 **데이터 액세스 계층**을 제공합니다. `JpaRepository`는 `Repository` 인터페이스의 하위 인터페이스로, `CRUD`와 관련된 기본 메소드들을 제공합니다.
+  - 개발자는 `JpaRepository`를 확장하여 사용자 정의 메소드를 추가할 수 있습니다.
+
+2. **Entity**:
+  - **JPA Entity**는 데이터베이스 테이블과 매핑되는 객체입니다. **`@Entity`** 어노테이션을 사용하여 JPA 엔티티로 지정하며, 이를 통해 데이터베이스 테이블과 상호작용합니다.
+  - **`@Id`** 어노테이션을 사용하여 기본 키를 지정하고, **`@GeneratedValue`** 어노테이션을 사용하여 기본 키 값을 자동으로 생성할 수 있습니다.
+
+3. **@Query**:
+  - `@Query` 어노테이션을 사용하여 **JPQL** 또는 **네이티브 SQL**을 직접 작성할 수 있습니다. 복잡한 쿼리를 작성해야 할 경우 유용합니다.
+
+   예시:
+   ```java
+   @Query("SELECT a FROM Article a WHERE a.title LIKE %:title%")
+   List<Article> findByTitleLike(@Param("title") String title);
+   ```
+
+4. **Pageable & Sort**:
+  - **`Pageable`**: 페이징을 처리하는 객체입니다. 이를 통해 원하는 페이지의 데이터를 조회할 수 있습니다.
+  - **`Sort`**: 데이터를 정렬하는 객체입니다. 여러 필드를 기준으로 정렬할 수 있습니다.
+
+   예시:
+   ```java
+   Page<Article> findByTitleContaining(String title, Pageable pageable);
+   ```
+
+5. **@Modifying**:
+  - **`@Modifying`** 어노테이션은 `@Query`와 함께 사용하여 **데이터 수정 작업**(INSERT, UPDATE, DELETE)을 수행할 수 있게 합니다.
+
+   예시:
+   ```java
+   @Modifying
+   @Query("UPDATE Article a SET a.title = :title WHERE a.id = :id")
+   int updateArticleTitle(@Param("id") Long id, @Param("title") String title);
+   ```
+
+### 주요 `JpaRepository` 메소드
+
+`JpaRepository`는 `CrudRepository`의 기능을 상속받아 다양한 메소드를 제공합니다. 가장 기본적인 CRUD 메소드 외에도, **페이징**, **정렬**, **커스텀 쿼리** 등을 지원합니다.
+
+1. **`save(S entity)`**: 엔티티를 저장하거나 업데이트합니다.
+2. **`findById(ID id)`**: 주어진 ID를 사용하여 엔티티를 조회합니다.
+3. **`findAll()`**: 모든 엔티티를 조회합니다.
+4. **`findAll(Sort sort)`**: 주어진 정렬 조건에 맞게 모든 엔티티를 조회합니다.
+5. **`findAll(Pageable pageable)`**: 페이징된 엔티티 리스트를 조회합니다.
+6. **`deleteById(ID id)`**: 주어진 ID를 가진 엔티티를 삭제합니다.
+7. **`count()`**: 엔티티의 총 개수를 반환합니다.
+
+### Spring Data JPA의 장점
+
+1. **자동화된 CRUD 작업**:
+  - 복잡한 쿼리 없이 `JpaRepository`에서 제공하는 기본 메소드만으로 많은 작업을 할 수 있습니다.
+
+2. **쿼리 메소드 자동 생성**:
+  - 메소드 이름만으로 쿼리를 자동 생성하여 데이터 조회를 간단히 처리할 수 있습니다.
+
+3. **페이징 및 정렬 지원**:
+  - 데이터를 페이징 처리하고 정렬할 수 있는 기능이 기본적으로 제공됩니다.
+
+4. **유연한 쿼리 작성**:
+  - **JPQL**이나 **네이티브 쿼리**를 통해 복잡한 쿼리도 유연하게 처리할 수 있습니다.
+
+5. **트랜잭션 관리**:
+  - Spring의 트랜잭션 관리 시스템을 통해 데이터베이스의 일관성을 보장하며, **@Transactional** 어노테이션을 통해 트랜잭션 범위를 지정할 수 있습니다.
+
+### 예시 코드
+
+```java
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface ArticleRepository extends JpaRepository<Article, Long> {
+    
+    // 기본적인 CRUD 메소드
+    List<Article> findAll(); // 모든 Article 조회
+    
+    // 사용자 정의 메소드 (title로 찾기)
+    List<Article> findByTitleContaining(String title); // 제목에 특정 문자열이 포함된 Article 조회
+    
+    // 페이징 및 정렬을 위한 메소드
+    Page<Article> findByAuthorName(String authorName, Pageable pageable);
+    
+    // 사용자 정의 JPQL 쿼리
+    @Query("SELECT a FROM Article a WHERE a.title LIKE %:title%")
+    List<Article> findByTitleLike(@Param("title") String title);
+    
+    // 데이터 수정 (UPDATE)
+    @Modifying
+    @Query("UPDATE Article a SET a.title = :title WHERE a.id = :id")
+    int updateArticleTitle(@Param("id") Long id, @Param("title") String title);
+}
+```
+
+### 요약
+
+- **Spring Data JPA**는 JPA를 쉽게 사용할 수 있도록 추상화된 **데이터 액세스 계층**을 제공합니다.
+- `JpaRepository` 인터페이스를 통해 기본적인 CRUD 작업을 자동으로 처리할 수 있습니다.
+- **쿼리 메소드**, **JPQL**, **네이티브 SQL** 등을 사용하여 복잡한 데이터베이스 작업을 손쉽게 처리할 수 있습니다.
+- **페이징**과 **정렬**을 기본적으로 지원하며, **트랜잭션 관리**를 자동으로 처리
+- Spring Data JPA 덕분에 **EntityManager**나 em.persist() 없이도 JPA를 편리하게 사용할 수 있다.
