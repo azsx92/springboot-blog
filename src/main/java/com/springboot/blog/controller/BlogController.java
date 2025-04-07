@@ -16,6 +16,7 @@ import java.util.List;
 @RestController
 public class BlogController {
     private final BlogService blogService;
+
     @GetMapping("/api/articles")
     public ResponseEntity<List<ArticleResponse>> findAllArticles() {
         List<ArticleResponse> articles = blogService.findAll()
@@ -29,7 +30,7 @@ public class BlogController {
 
     @GetMapping("/api/articles/{id}") //URL 경로에서 값 추출
     public ResponseEntity<ArticleResponse> findArticles(@PathVariable Long id) {
-       Article article = blogService.findById(id);
+        Article article = blogService.findById(id);
 
         return ResponseEntity.ok()
                 .body(new ArticleResponse(article));
@@ -46,5 +47,10 @@ public class BlogController {
                 .body(saveArticle);
     }
 
-
+    @DeleteMapping("/api/articles/{id}")
+    public ResponseEntity<Article> deleteArticle(@PathVariable Long id) {
+        blogService.delete(id);
+        return ResponseEntity.ok()
+                .build();
+    }
 }
