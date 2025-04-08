@@ -1,10 +1,7 @@
 package com.springboot.blog.controller;
 
 import com.springboot.blog.domain.Article;
-import com.springboot.blog.dto.AddArticleRequest;
-import com.springboot.blog.dto.ArticleListViewResponse;
-import com.springboot.blog.dto.ArticleResponse;
-import com.springboot.blog.dto.UpdateArticleRequest;
+import com.springboot.blog.dto.*;
 import com.springboot.blog.service.BlogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,5 +25,13 @@ public class BlogViewController {
         model.addAttribute("articles", articles); // 블로그 글 리스트 저장
 
         return "articleList"; // articleList.html 조회
+    }
+
+    @GetMapping("/articles/{id}")
+    public String getArticle(@PathVariable Long id, Model model){
+        Article article = blogService.findById(id);
+        model.addAttribute("article", new ArticleViewResponse(article)); // 블로그 글 리스트 저장
+
+        return "article"; // article.html 조회
     }
 }

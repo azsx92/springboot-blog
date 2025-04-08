@@ -5,6 +5,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.LocalDateTime;
 
 //entity란 JPA에서 데이터베이스 테이블과 매핑되는 클래스를 나타냅니다.
 // 이 클래스는 객체 지향적으로 데이터를 다루기 위해 데이터베이스의 한 행(row)을 객체로 표현하는 역할
@@ -27,6 +31,15 @@ public class Article { // 기사라는 뜻
     // 내용
     @Column(name = "content", nullable = false)
     private String content;
+
+    @CreatedDate // 엔티티가 생성될 때 생성 시간 저장
+    @Column(name = "create_at")
+    private LocalDateTime createAt;
+
+    @LastModifiedDate // 엔티티가 수정될 때 수정 시간 저장
+    @Column(name = "update_at")
+    private LocalDateTime updateAt;
+
 
     @Builder // 빌더 패턴으로 객체 생성
     public Article(String title, String content) {
