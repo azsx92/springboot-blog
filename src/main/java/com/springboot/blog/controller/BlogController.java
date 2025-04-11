@@ -22,7 +22,7 @@ public class BlogController {
     public ResponseEntity<List<ArticleResponse>> findAllArticles() {
         List<ArticleResponse> articles = blogService.findAll()
                 .stream()
-                .map(ArticleResponse::new)
+                .map(article -> new ArticleResponse(article))
                 .toList();
 
         return ResponseEntity.ok()

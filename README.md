@@ -1281,3 +1281,54 @@ public class ReflectionExample {
 - `map(article -> new ArticleListViewResponse(article))`을 간단하게 `ArticleListViewResponse::new`로 쓴 것.
 - 코드가 더 **간결하고 읽기 쉬워지는 장점**이 있습니다.
 
+### @EnableJpaAuditing 
+-  create_at, update_at 자동 업데이트
+- 스프링부트에서 생성 시간 , 수정 시간을 업데이트하기 위해 @CreateDate, @LastModifieDate 애너테이션을 사용한다.
+- 이 애너테이션이 동적 하려면 JPA Auding을 활성화해야 하죠. 어떤 애너테이션을 추가해야 JPA Auditing이 활성화 될까요?
+
+## spring sequrity 란?
+- spring sequrity란 스프링 기반의 애플리케이션(인증, 인가, 권한)을 담당하는 스프링 하위 프레임워크입니다. 스프링 시큐리티를 이해하려면 **인증(authentication)**과 **인가(authorization)**에 대한 개념을 알아야합니다.
+
+### **인증(authentication)**과 **인가(authorization)**
+-**인증(authentication)** 은 사용자의 신원을 입증하는 과정입니다. 예를 들어 사용자가 사이트에 로그인을 할 때 누구인지 확인 하는 과정을 인증이라고 합니다.
+-**인가(authorization)** 는 인증과는 다릅니다. 인가는 사이트의 특정 부분에 접근할 수 있는지 권한을 확인하는 작업입니다. 예를 들어 관리자는 관리자페이지에 들어갈 수 있지만 일반 사용자는 관리자 페이지에 들어갈 수 없습니다. 이런 권한을 확인하는 과정을 인가라고 합니다.
+- 인증과 인가 관련 코드를 아무런 도구의 도움 없이 작성하려면 굉장히 많은 시간이 필요한데요, 스프링 시큐리티를 사용하면 아주 쉽게 처리 할 수 있습니다.
+
+### spring sequrity
+- spring sequrity 는 스프링 기반 애플리케이션의 보안을 담당하는 스프링하위 프레임워크 입니다. 보안 관련 옵션을 많이 제공하죠. 그리고 애너테이션으로 설정도 매우 쉽습니다.
+- **CSRF 공격** , **세션 고정(SESSION FIXATION) 공격**도 방어해주고 요청 헤더도 보안 처리를 해주므로 개발자가 보안 관련 개발을 해야 하는 부담을 크게 줄여줍니다.
+- **CSRF 공격**은 사용자의 권한을 가지고 특정 동작을 수행하도록 유도하는 공격을 말합니다.
+- **세션 고정(SESSION FIXATION)**은 사용자의 인증 정보를 탈취하거나 변조하는 공격을 말합니다.
+
+### 필터 기반으로 동작하는 스프링 시큐리티
+- 스프링 시큐리티는 필터 기반으로 동작합니다. 스프링 시큐리티의 필터 구조를 살펴보면 어떤 필터가 동적하는지 알아보겠습니다.
+![인증과 인가.png](..%2F..%2F..%2FDownloads%2F%EC%9D%B8%EC%A6%9D%EA%B3%BC%20%EC%9D%B8%EA%B0%80.png)
+
+- 스프링 시큐리티는 이렇게 다양한 필터들로 나누어져 있으며, 각 필터에서 인증, 인가와 관련된 작업을 처리합니다.
+- **SecurityContextPersistenceFilter** 부터 시작해서 아래로 내려가면 **FilterSecurityInterceptor**까지 순서대로 필터를 거칩니다.
+- 필터를 실행할 때는 회색 화살표로 연결된 오른쪽 박스의 클래스를 거치며 실행합니다. 특정 필터를 제거하거나 필터 뒤에 커스텀 필터를 넣는 등의 설정도 가능합니다.
+- 여기서 눈여겨볼 필터는 회색으로 색칠한 **UsernamePasswordAuthenticationFilter** 와 **FilterSecurityInterceptor** 입니다.
+- **1. UsernamePasswordAuthenticationFilter** 는 아이디와 패스워드가 넘어오면 인증 요청을 위임하는 인증 관리자 역할을 합니다.
+- **2. FilterSecurityInterceptor**는 권한 부여 처리를 위힘해 접근 제어 결정을 쉽게 하는 접근 결정 관리자 역할을 합니다.
+- SecurityContextPersistenceFilter -SecurityContextRepository에서 SecurityContext(접근 주체와 인증에 대한 정보를 담고 있는 객체)를 가져오거나 저장하는 역할을 합니다.
+- LogoutFilter - 설정된 로그아웃 URL로 오는 요청을 확인해 해당 사용자를 로그아웃 처리합니다.주체(Principal)의 로그아웃을 진행합니다. 주체는 보통 유저를 말합니다. 
+- UsernamePasswordAuthenticationFilter - 인증관리자이며 폼기반 로그인을 할 때 사용되는 필터로 아이디, 패스워드 데이터를 파싱해 인증 요청을 위임합니다. 인증에 성공하면 AuthenticationSuccessHandler를 , 인증에 실패하면 AuthenticationFailureHandler를 실행합니다.(로그인) 인증 과정을 진행합니다. 
+- DefaultLoginPageGeneratingFilter - 사용자가 별도의 로그인 페이지를 구현하지 않은 경우, 스프링에서 기본적으로 설정한 로그인 페이지를 처리합니다. 
+- BasicAuthenticationFilter - HTTP 요청의 (BASIC)인증 헤더에 있는 아이디와 패스워드를 파싱해서 인증 요청을 위임합니다. 인증에 성공하면 AuthenticationSuccessHandler를 , 인증에 실패하면 AuthenticationFailureHandler를 실행합니다. 
+- RememberMeAuthenticationFilter - SecurityContext에 인증(Authentication) 객체가 있는지 확인하고RememberMeServices를 구현한 객체의 요청이 있을 경우, Remember-Me(ex 사용자가 바로 로그인을 하기 위해서 저장 한 아이디와 패스워드)를 인증 토큰으로 컨텍스트에 주입합니다. 
+- RequestCacheAwareFilter - 로그인 성공 후, 관련 있는 캐시 요청이 있는지 확인하고 캐스 요청을 처리하줍니다. 예를 들어 로그인하지 않은 상태로 방문했던 페이지를 기억해두었다가 로그인 이후에 그 페이지로 이동시켜줍니다.
+- SecurityContextHolderAwareRequestFilter - HttpServletRequest 정보를 감쌉니다. 필터 체인 상의 다음 필터들에게 부가 정보를 제공되기 위해 사용합니다.
+- AnonymousAuthenticationFilter - 필터가 호출되는 시점까지 인증되지 않았다면 익명 사용자 전용 객체인 AnonymousAuthetication을 만들어 SecurityContext에 넣어줍니다.
+- SessionManagementFilter - 요청이 시작된 이 후 인증된 사용자 인지 확인하고, 인증된 사용자일 경우SessionAuthenticationStrategy를 호출하여 세션 고정 보호 메커니즘을 활성화하거나 여러 동시 로그인을 확인하는 것과 같은 세션 관련 활동을 수행합니다. 인증괸 사용자와 관련된 세션 관련 작업을 진행하빈다. 세션 변조 방지 전략을 설정하고 , 유효하지 않은 세션에 대한 처리를 하고, 세션 생성 전략을 세우는 등의 작업을 처리합니다. 
+- ExceptionTranslationFilter - 필터 체인 내에서 발생(Throw)되는 모든 예외(AccessDeniedException, AuthenticationException)를 처리합니다. 요청을 처리하는 중에 발생할 수 있는 예외를 위임하거나 전달합니다. 
+- FilterSecurityInterceptor - HTTP 리소스의 보안 처리를 수행합니다.접근 결정 관리자입니다. AccessDecisionManager로 권한 부여 처리를 위임함으로써 접근 제어 결정을 쉽게 해줍니다. 이 과정에서는 이미 사용자가 인증되어 있으므로 유효한 사용자인지도 알 수 있습니다. 즉 , 인가 관련 설정할 수 있습니다.
+- 가장 많이 사용하는 아이디와 패스워드 기반 폼 로그인을 시도하면 스프링 시큐리티에서는 어떤 절차로 인증 처리를 하는지 그림을 보면서 알아 보겠습니다.
+![spring-security-authentication-architecture-provider.png](..%2F..%2F..%2FDownloads%2Fspring-security-authentication-architecture-provider.png)
+1. 사용자가 폼에 아이디와 패스위드를 입력하면 , HTTPServletRequest에 아이디와 비밀번호정보가 전달됩니다. 이때 AuthenticationFilter가 넘어온 아이디와 비밀번호의 유효성 검사를 합니다.
+2. 유효성 검사가 끝나면 실제 구현체인 UsernamePasswordAuthenticationToken을 만들어 넘겨줍니다.
+3. 전달 받은 인증용 객체인 UsernamePasswordAuthenticationToken을 AuthenticationManager에게 보냅니다. 
+4. UsernamePasswordAuthenticationToken을 AuthenticationProvider에 보냅니다.
+5. 사용자 아이디를 UserDetailService에 보냅니다. UserDetailService는 사용자 아이디로 찾은 사용자의 정보를 UserDetails객체로 만들어 AuthenticationProvider에게 전달합니다.
+6. DB에 있는 사용자 정보를 가져옵니다. 
+7. 입력 정보와 UserDetails의 정보를 비교해 실제 인증 처리를 합니다. 8~10 까지 인증이 완료되면 SecurityContextHolder에  Authentication을 저장합니다. 인증 성공 여부에 따라 성공하면 AuthenticationSuccessHandler, 실패하면 AuthenticationFailureHandler 핸들러를 실행합니다.
+- 여기까지 스프링 시큐리티 폼 로구인 인증 흐름을 알아보았습니다. 시큐리티의 폼 로그인 설정 하는 것은 간단하지만 실제로는 이러한 복잡한 내부 동작을 실행합니다. 물론 이동작을 모두 다 외워야 하는 것은 아니지만 어떠한 흐름으로 로그인 동작하는지 이해하면 스프링 시큐리티를 더 잘 이해하고 활용할 수 있습니다.
