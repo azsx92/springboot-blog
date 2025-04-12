@@ -1559,3 +1559,203 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 - 예: `findByName(String name, Sort sort)` 또는 `findByAgeGreaterThan(int age, Pageable pageable)`
 
 ---
+
+## 'authorizeRequests()' is deprecated and marked for removal import 에러
+Spring Security에서 `authorizeRequests()` 메서드가 deprecated되었고, 이는 Spring Security 5.x 버전에서 6.x 버전으로 업데이트되면서 변경된 부분입니다. JDK 17에서 해당 오류가 발생하는 이유는 Spring Security 6.x부터는 `authorizeRequests()` 대신 새로운 방식의 메서드 체이닝을 사용하도록 변경되었기 때문입니다.
+
+### 해결 방법:
+
+Spring Security 6.x 이상에서는 `authorizeRequests()` 메서드 대신 `authorizeHttpRequests()` 메서드를 사용해야 합니다.
+
+### 🛠️ 해결법
+
+#### 기존 코드 (Spring Security 5.x 이하):
+```java
+http
+    .authorizeRequests()
+        .antMatchers("/admin/**").hasRole("ADMIN")
+        .antMatchers("/user/**").hasRole("USER")
+        .anyRequest().authenticated();
+```
+
+#### 수정된 코드 (Spring Security 6.x 이상):
+```java
+http
+    .authorizeHttpRequests()
+        .requestMatchers("/admin/**").hasRole("ADMIN")
+        .requestMatchers("/user/**").hasRole("USER")
+        .anyRequest().authenticated();
+```
+
+#### 주요 변경점:
+1. **`authorizeRequests()` → `authorizeHttpRequests()`**:  
+   Spring Security 6.x에서는 `authorizeRequests()`가 deprecated되고 `authorizeHttpRequests()`로 변경되었습니다.
+
+2. **`antMatchers()` → `requestMatchers()`**:  
+   `antMatchers()` 메서드도 `requestMatchers()`로 변경되었습니다. `requestMatchers()`는 `AntPathRequestMatcher`를 사용해 요청을 매칭합니다. 기본적으로 `requestMatchers()`는 HTTP 요청 경로에 대한 매칭을 처리합니다.
+
+### 🔄 예시: Spring Security 6.x로의 변경
+
+#### 기존 코드:
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http
+        .authorizeRequests()
+            .antMatchers("/admin/**").hasRole("ADMIN")
+            .antMatchers("/user/**").hasRole("USER")
+            .anyRequest().authenticated()
+        .and()
+        .formLogin().permitAll();
+}
+```
+
+#### 변경된 코드:
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests()
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers("/user/**").hasRole("USER")
+            .anyRequest().authenticated()
+        .and()
+        .formLogin().permitAll();
+}
+```
+
+### ⚡ 추가적인 주의 사항:
+- **Spring Security 6.x**는 **Spring Boot 3.x**와 함께 사용되는 경우가 많습니다. `Spring Boot 3.x`와 `Spring Security 6.x`는 JDK 17 이상을 기본적으로 지원하며, `javax.servlet`에서 `jakarta.servlet`로 패키지명이 변경된 점 등도 함께 주의해야 합니다.
+
+### 결론:
+- `authorizeRequests()`는 Spring Security 6.x에서 **deprecated** 되었고, **`authorizeHttpRequests()`**로 대체되었습니다.
+- **`antMatchers()`** 또한 **`requestMatchers()`**로 변경되었습니다.
+
+Spring Security 6.x에서 `authorizeHttpRequests()`, `formLogin()`, `logout()`, `csrf()`, `and()` 등의 메서드들이 deprecated 되고 제거 예정이기 때문에, 이 부분들을 **Spring Security 6.x**에 맞게 변경해야 합니다.
+
+### 6.x에 맞춘 코드 변경
+
+Spring Security 6.x에서는 **`authorizeHttpRequests()`**, **`formLogin()`**, **`logout()`**, **`csrf()`** 등 대부분의 메서드가 새로운 API로 대체되었습니다. 또한, `and()`와 같은 체이닝 방식도 대부분 사라졌습니다. Spring Security 6.x에서는 `SecurityFilterChain`을 사용하는 방식으로 설정을 변경해야 합니다.
+
+## AuthenticationManager 설정
+Spring Security 6.x에서는 `and()` 메서드가 deprecated되고 제거 예정이기 때문에, 인증 관리자 관련 설정을 새로운 방식으로 변경해야 합니다.
+
+### Spring Security 6.x에서 `AuthenticationManager` 설정 변경
+
+`and()` 메서드가 deprecated되었으므로, `AuthenticationManager`를 설정하는 방식도 변경되었습니다. 대신, `AuthenticationManager`를 설정하는 데 필요한 객체를 명시적으로 **`AuthenticationManagerBuilder`**를 사용해 설정할 수 있습니다.
+
+### 수정된 코드 예시
+
+#### 기존 코드 (Spring Security 5.x 이하):
+
+```java
+@Bean
+public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder, UserDetailService userDetailService) throws Exception {
+    return http
+            .getSharedObject(AuthenticationManagerBuilder.class)
+            .userDetailsService(userService) // 사용자 정보 서비스 설정
+            .passwordEncoder(bCryptPasswordEncoder)
+            .and() // and()가 deprecated되었으므로 제거
+            .build();
+}
+```
+
+#### Spring Security 6.x에 맞춘 수정된 코드:
+
+```java
+@Bean
+public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder, UserDetailService userDetailService) throws Exception {
+    AuthenticationManagerBuilder authenticationManagerBuilder = 
+        http.getSharedObject(AuthenticationManagerBuilder.class);
+
+    authenticationManagerBuilder
+        .userDetailsService(userDetailService)  // 사용자 정보 서비스 설정
+        .passwordEncoder(bCryptPasswordEncoder); // 비밀번호 인코더 설정
+
+    // AuthenticationManager 빌드 후 반환
+    return authenticationManagerBuilder.build();
+}
+```
+
+### 변경 사항 설명:
+
+1. **`and()` 제거**:
+    - Spring Security 6.x에서는 더 이상 `and()` 메서드를 사용하지 않으므로, `AuthenticationManagerBuilder`를 직접 사용하여 `userDetailsService`와 `passwordEncoder`를 설정한 후, `build()` 메서드를 호출하여 `AuthenticationManager`를 생성합니다.
+
+2. **`AuthenticationManagerBuilder` 직접 사용**:
+    - `AuthenticationManagerBuilder`를 사용하여 직접 설정을 구성합니다. `getSharedObject()`를 통해 `AuthenticationManagerBuilder` 객체를 가져와서 설정하고, 마지막에 `build()` 메서드를 호출하여 `AuthenticationManager`를 반환합니다.
+
+3. **`userDetailsService()`와 `passwordEncoder()`**:
+    - `userDetailsService()`로 사용자 정보 서비스(`UserDetailsService`)를 설정하고, `passwordEncoder()`로 비밀번호 인코딩 방식을 설정합니다.
+
+### **핵심 포인트**:
+- `and()` 메서드를 더 이상 사용하지 않으므로, 설정을 완료한 후 **`AuthenticationManagerBuilder`** 객체에서 직접 `build()` 메서드를 호출하여 `AuthenticationManager`를 생성해야 합니다.
+
+### 결론:
+Spring Security 6.x에서는 더 이상 `and()`를 사용하지 않으므로, 위와 같은 방식으로 `AuthenticationManager`를 설정해야 합니다. 새로운 설정 방식에 맞게 코드 변경을 진행하면 됩니다!
+
+혹시 더 궁금한 점이나 추가로 확인하고 싶은 사항이 있다면 언제든지 질문 주세요! 😊
+
+### 해결 방법: Spring Security 6.x에 맞게 설정 수정
+
+1. **`loginPage()`** → 로그인 페이지 URL 설정은 이제 `formLogin()`의 내부에서 처리해야 합니다.
+2. **`logoutSuccessUrl()`** → 로그아웃 성공 후 URL 설정도 `logout()`의 람다식 내부에서 처리합니다.
+3. **`disable()`** → CSRF 비활성화는 `csrf()` 메서드를 통해 **람다식**으로 설정합니다.
+
+### Spring Security 6.x 방식으로 코드 수정
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/login", "/signup", "/user").permitAll() // 인증 없이 접근할 URL 설정
+                .anyRequest().authenticated() // 나머지 요청은 인증 필요
+            )
+            .formLogin(form -> form // 폼 기반 로그인 설정
+                .loginPage("/login") // 로그인 페이지 URL
+                .defaultSuccessUrl("/articles", true) // 로그인 성공 후 리다이렉트 URL
+            )
+            .logout(logout -> logout // 로그아웃 설정
+                .logoutSuccessUrl("/login") // 로그아웃 성공 후 리다이렉트 URL
+                .invalidateHttpSession(true) // 세션 무효화
+            )
+            .csrf(csrf -> csrf // CSRF 비활성화
+                .disable()
+            )
+            .build(); // 최종 빌드
+
+        return http.build();
+    }
+}
+```
+
+### 주요 변경 사항
+1. **`formLogin()`**:
+    - `formLogin()` 내부에 로그인 페이지를 설정하는 메서드 `loginPage("/login")`가 있습니다.
+    - `defaultSuccessUrl("/articles")`는 로그인 성공 후 리다이렉트할 URL을 설정하는 부분입니다.
+
+2. **`logout()`**:
+    - 로그아웃 성공 후 리다이렉트할 URL을 설정하는 `logoutSuccessUrl("/login")`는 `logout()`의 람다식 내부에서 설정합니다.
+    - 세션을 무효화하는 설정인 `invalidateHttpSession(true)`도 `logout()`의 람다식 내에 포함됩니다.
+
+3. **`csrf()`**:
+    - CSRF 보호를 비활성화하려면 `csrf().disable()`을 사용합니다. Spring Security 6에서는 람다식으로 `csrf(csrf -> csrf.disable())`와 같이 설정합니다.
+
+---
+
+### 왜 이런 변경이 있었을까요?
+- Spring Security 6.x에서는 **`HttpSecurity`** 설정을 **람다식** 방식으로 통합하여 **직관적이고, 명확한 설정**을 할 수 있게 되었습니다.
+- 이제는 모든 보안 설정을 `SecurityFilterChain`으로 중앙 집중화하여 관리하고, 메서드 체이닝 방식에서 벗어나 **람다식으로 설정**을 다루게 되었습니다.
+
+---
+
+### 결론
+- `loginPage()`, `logoutSuccessUrl()`, `disable()` 같은 메서드는 **람다식 내부**에서 사용됩니다.
+- **`SecurityFilterChain`**을 사용하여 Spring Security 설정을 **람다 방식**으로 처리해야 합니다.
+
+Spring Security 6.x로의 마이그레이션에서는 기존의 메서드 체이닝 방식이 더 이상 사용되지 않고, **람다식** 방식으로 설정해야 하므로 이 점을 참고하여 코드를 수정하면 해결됩니다! 😄

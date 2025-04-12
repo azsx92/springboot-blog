@@ -35,6 +35,10 @@ public class User implements UserDetails { //UserDetails를 상속받아 인증 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("user"));
     }
+
+    public Long getId() {
+        return id;
+    }
     // 사용자의 id를 반환(고유한 값)
     @Override
     public String getUsername() {
@@ -70,4 +74,6 @@ public class User implements UserDetails { //UserDetails를 상속받아 인증 
         // 계정이 사용 가능한지 확인하는 로직
         return true; // true -> 사용가능
     }
+
+
 }
