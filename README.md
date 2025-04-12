@@ -1462,3 +1462,100 @@ public class CustomUserDetailsService implements UserDetailsService {
 | `isEnabled()` | 계정 활성화 여부 |
 
 ---
+## 자주 사용하는 쿼리 메서드의 명명 규칙들
+It looks like you're asking about **Spring Data JPA** query method naming conventions! 😄  
+These are **query methods** that you define in a Spring Data JPA repository, and they automatically generate the corresponding SQL queries based on the method name.
+
+Let me break down each of these queries with their **meaning** and **how they work**:
+
+---
+
+### 1. `findByName`
+
+- **Query**: `SELECT * FROM entity WHERE name = ?`
+- **설명**: `name` 필드가 특정 값과 일치하는 엔티티를 조회합니다.
+- **예시**: `findByName("John")` -> `name`이 "John"인 모든 엔티티를 반환.
+
+---
+
+### 2. `findByNameAndAge`
+
+- **Query**: `SELECT * FROM entity WHERE name = ? AND age = ?`
+- **설명**: `name`과 `age` 두 필드가 모두 일치하는 엔티티를 조회합니다.
+- **예시**: `findByNameAndAge("John", 30)` -> `name`이 "John"이고, `age`가 30인 엔티티를 반환.
+
+---
+
+### 3. `findByNameOrAge`
+
+- **Query**: `SELECT * FROM entity WHERE name = ? OR age = ?`
+- **설명**: `name` 또는 `age` 필드 중 하나라도 일치하는 엔티티를 조회합니다.
+- **예시**: `findByNameOrAge("John", 30)` -> `name`이 "John"이거나 `age`가 30인 엔티티를 반환.
+
+---
+
+### 4. `findByAgeLessThan`
+
+- **Query**: `SELECT * FROM entity WHERE age < ?`
+- **설명**: `age` 필드가 주어진 값보다 작은 엔티티를 조회합니다.
+- **예시**: `findByAgeLessThan(30)` -> `age`가 30보다 작은 엔티티들을 반환.
+
+---
+
+### 5. `findByAgeGreaterThan`
+
+- **Query**: `SELECT * FROM entity WHERE age > ?`
+- **설명**: `age` 필드가 주어진 값보다 큰 엔티티를 조회합니다.
+- **예시**: `findByAgeGreaterThan(30)` -> `age`가 30보다 큰 엔티티들을 반환.
+
+---
+
+### 6. `findByNameIsNull`
+
+- **Query**: `SELECT * FROM entity WHERE name IS NULL`
+- **설명**: `name` 필드가 **null**인 엔티티들을 조회합니다.
+- **예시**: `findByNameIsNull()` -> `name` 필드가 **null**인 모든 엔티티를 반환.
+
+---
+
+## 🔍 예시 코드 (간단한 Entity와 Repository)
+
+### 엔티티 클래스 (`Person`)
+
+```java
+@Entity
+public class Person {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String name;
+    private int age;
+
+    // Getters and Setters
+}
+```
+
+### 리포지토리 인터페이스 (`PersonRepository`)
+
+```java
+public interface PersonRepository extends JpaRepository<Person, Long> {
+    List<Person> findByName(String name);
+    List<Person> findByNameAndAge(String name, int age);
+    List<Person> findByNameOrAge(String name, int age);
+    List<Person> findByAgeLessThan(int age);
+    List<Person> findByAgeGreaterThan(int age);
+    List<Person> findByNameIsNull();
+}
+```
+
+이렇게 Spring Data JPA에서 정의된 메서드 이름을 기반으로, Spring이 자동으로 SQL 쿼리를 생성해 줍니다.
+
+---
+
+### 📌 추가 사항:
+- **정렬**이나 **페이징 처리**를 추가하고 싶다면, `Sort`나 `Pageable`을 메서드 파라미터로 받을 수 있습니다.
+- 예: `findByName(String name, Sort sort)` 또는 `findByAgeGreaterThan(int age, Pageable pageable)`
+
+---
