@@ -1287,25 +1287,25 @@ public class ReflectionExample {
 - 이 애너테이션이 동적 하려면 JPA Auding을 활성화해야 하죠. 어떤 애너테이션을 추가해야 JPA Auditing이 활성화 될까요?
 
 ## spring sequrity 란?
-- spring sequrity란 스프링 기반의 애플리케이션(인증, 인가, 권한)을 담당하는 스프링 하위 프레임워크입니다. 스프링 시큐리티를 이해하려면 **인증(authentication)**과 **인가(authorization)**에 대한 개념을 알아야합니다.
+- spring sequrity란 스프링 기반의 애플리케이션(인증, 인가, 권한)을 담당하는 스프링 하위 프레임워크입니다. 스프링 시큐리티를 이해하려면 **인증(authentication)** 과 **인가(authorization)**에 대한 개념을 알아야합니다.
 
-### **인증(authentication)**과 **인가(authorization)**
+### **인증(authentication)** 과 **인가(authorization)**
 -**인증(authentication)** 은 사용자의 신원을 입증하는 과정입니다. 예를 들어 사용자가 사이트에 로그인을 할 때 누구인지 확인 하는 과정을 인증이라고 합니다.
 -**인가(authorization)** 는 인증과는 다릅니다. 인가는 사이트의 특정 부분에 접근할 수 있는지 권한을 확인하는 작업입니다. 예를 들어 관리자는 관리자페이지에 들어갈 수 있지만 일반 사용자는 관리자 페이지에 들어갈 수 없습니다. 이런 권한을 확인하는 과정을 인가라고 합니다.
 - 인증과 인가 관련 코드를 아무런 도구의 도움 없이 작성하려면 굉장히 많은 시간이 필요한데요, 스프링 시큐리티를 사용하면 아주 쉽게 처리 할 수 있습니다.
 
 ### spring sequrity
 - spring sequrity 는 스프링 기반 애플리케이션의 보안을 담당하는 스프링하위 프레임워크 입니다. 보안 관련 옵션을 많이 제공하죠. 그리고 애너테이션으로 설정도 매우 쉽습니다.
-- **CSRF 공격** , **세션 고정(SESSION FIXATION) 공격**도 방어해주고 요청 헤더도 보안 처리를 해주므로 개발자가 보안 관련 개발을 해야 하는 부담을 크게 줄여줍니다.
-- **CSRF 공격**은 사용자의 권한을 가지고 특정 동작을 수행하도록 유도하는 공격을 말합니다.
-- **세션 고정(SESSION FIXATION)**은 사용자의 인증 정보를 탈취하거나 변조하는 공격을 말합니다.
+- **CSRF 공격** , **세션 고정(SESSION FIXATION) 공격** 도 방어해주고 요청 헤더도 보안 처리를 해주므로 개발자가 보안 관련 개발을 해야 하는 부담을 크게 줄여줍니다.
+- **CSRF 공격** 은 사용자의 권한을 가지고 특정 동작을 수행하도록 유도하는 공격을 말합니다.
+- **세션 고정(SESSION FIXATION)** 은 사용자의 인증 정보를 탈취하거나 변조하는 공격을 말합니다.
 
 ### 필터 기반으로 동작하는 스프링 시큐리티
 - 스프링 시큐리티는 필터 기반으로 동작합니다. 스프링 시큐리티의 필터 구조를 살펴보면 어떤 필터가 동적하는지 알아보겠습니다.
 ![인증과 인가.png](..%2F..%2F..%2FDownloads%2F%EC%9D%B8%EC%A6%9D%EA%B3%BC%20%EC%9D%B8%EA%B0%80.png)
 
 - 스프링 시큐리티는 이렇게 다양한 필터들로 나누어져 있으며, 각 필터에서 인증, 인가와 관련된 작업을 처리합니다.
-- **SecurityContextPersistenceFilter** 부터 시작해서 아래로 내려가면 **FilterSecurityInterceptor**까지 순서대로 필터를 거칩니다.
+- **SecurityContextPersistenceFilter** 부터 시작해서 아래로 내려가면 **FilterSecurityInterceptor** 까지 순서대로 필터를 거칩니다.
 - 필터를 실행할 때는 회색 화살표로 연결된 오른쪽 박스의 클래스를 거치며 실행합니다. 특정 필터를 제거하거나 필터 뒤에 커스텀 필터를 넣는 등의 설정도 가능합니다.
 - 여기서 눈여겨볼 필터는 회색으로 색칠한 **UsernamePasswordAuthenticationFilter** 와 **FilterSecurityInterceptor** 입니다.
 - **1. UsernamePasswordAuthenticationFilter** 는 아이디와 패스워드가 넘어오면 인증 요청을 위임하는 인증 관리자 역할을 합니다.
@@ -1332,3 +1332,133 @@ public class ReflectionExample {
 6. DB에 있는 사용자 정보를 가져옵니다. 
 7. 입력 정보와 UserDetails의 정보를 비교해 실제 인증 처리를 합니다. 8~10 까지 인증이 완료되면 SecurityContextHolder에  Authentication을 저장합니다. 인증 성공 여부에 따라 성공하면 AuthenticationSuccessHandler, 실패하면 AuthenticationFailureHandler 핸들러를 실행합니다.
 - 여기까지 스프링 시큐리티 폼 로구인 인증 흐름을 알아보았습니다. 시큐리티의 폼 로그인 설정 하는 것은 간단하지만 실제로는 이러한 복잡한 내부 동작을 실행합니다. 물론 이동작을 모두 다 외워야 하는 것은 아니지만 어떠한 흐름으로 로그인 동작하는지 이해하면 스프링 시큐리티를 더 잘 이해하고 활용할 수 있습니다.
+
+## userDetails 란
+- `UserDetails`는 **스프링 시큐리티가 사용자 정보를 다루는 핵심 객체**
+
+## 🧩 `UserDetails` 인터페이스의 주요 함수 목록
+
+| 메서드 이름 | 반환 타입 | 한글 설명 |
+|-------------|-----------|------------|
+| `String getUsername()` | `String` | 사용자의 로그인 ID (예: 이메일, 사용자명 등) |
+| `String getPassword()` | `String` | 사용자의 비밀번호 |
+| `Collection<? extends GrantedAuthority> getAuthorities()` | `Collection` | 사용자의 권한 목록 (예: ROLE_USER, ROLE_ADMIN 등) |
+| `boolean isAccountNonExpired()` | `boolean` | 계정이 만료되지 않았는지 여부 (true면 사용 가능) |
+| `boolean isAccountNonLocked()` | `boolean` | 계정이 잠겨있지 않은지 여부 (true면 사용 가능) |
+| `boolean isCredentialsNonExpired()` | `boolean` | 비밀번호가 만료되지 않았는지 여부 |
+| `boolean isEnabled()` | `boolean` | 계정이 활성화되어 있는지 여부 (탈퇴 or 비활성화된 계정은 false) |
+
+---
+
+## 🛠️ 간단 구현 예시
+
+```java
+public class CustomUserDetails implements UserDetails {
+
+    private final User user;
+
+    public CustomUserDetails(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public String getUsername() {
+        return user.getUsername(); // 또는 getEmail()
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(user.getRole()));
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // 필요시 만료 로직 구현 가능
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // 잠김 여부 로직
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // 비밀번호 만료 여부
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return user.isEnabled(); // 예: 이메일 인증 완료 여부
+    }
+}
+```
+
+---
+
+## 🔍 요약하자면:
+
+- `UserDetails`는 **스프링 시큐리티가 사용자 정보를 다루는 핵심 객체**
+- 인증 후, SecurityContext에 저장되는 주체 (Principal)가 이 인터페이스 형태
+- 대부분의 경우 커스텀 구현해서 DB 사용자 정보와 연동
+
+---
+
+## 🔐 Spring Security의 `UserDetailsService`란?
+
+Spring Security에서 인증(Authentication)을 처리할 때, **사용자 정보를 불러오는 역할**을 하는 인터페이스입니다.
+
+가장 중요한 함수는 바로 하나:
+
+### ✅ `loadUserByUsername(String username)`
+
+- **한글 설명**: 사용자 이름(또는 이메일, ID 등)을 기반으로 사용자 정보를 조회하는 함수
+- **역할**: 이 함수가 반환하는 `UserDetails` 객체를 바탕으로 Spring Security가 인증을 수행합니다.
+
+---
+
+## 🔧 커스터마이징해서 자주 구현하는 방식
+
+보통 우리는 `UserDetailsService`를 구현하는 클래스를 이렇게 만들어요:
+
+```java
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 여기서 DB에서 사용자 조회
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+        return new org.springframework.security.core.userdetails.User(
+            user.getUsername(),
+            user.getPassword(),
+            authorities  // 권한 리스트
+        );
+    }
+}
+```
+
+---
+
+## 🔑 관련 클래스와 함수들 (한글로 정리)
+
+| 이름 | 한글 설명 |
+|------|-----------|
+| `UserDetailsService` | 사용자 정보를 불러오는 서비스 인터페이스 |
+| `loadUserByUsername()` | 사용자 이름으로 사용자 정보 로드 |
+| `UserDetails` | 사용자 정보를 담는 인터페이스 |
+| `getUsername()` | 사용자 이름 반환 |
+| `getPassword()` | 비밀번호 반환 |
+| `getAuthorities()` | 사용자의 권한 목록 반환 |
+| `isAccountNonExpired()` | 계정 만료 여부 |
+| `isAccountNonLocked()` | 계정 잠김 여부 |
+| `isCredentialsNonExpired()` | 비밀번호 만료 여부 |
+| `isEnabled()` | 계정 활성화 여부 |
+
+---
