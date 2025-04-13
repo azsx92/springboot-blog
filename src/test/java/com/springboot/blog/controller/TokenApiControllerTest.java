@@ -1,6 +1,8 @@
 package com.springboot.blog.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import com.springboot.blog.config.jwt.JwtFactory;
 import com.springboot.blog.config.jwt.JwtProperties;
 import com.springboot.blog.domain.RefreshToken;
@@ -69,15 +71,14 @@ class TokenApiControllerTest {
                 .password("test")
                 .build());
 
-        String refreshToekn = JwtFactory.builder()
+        String refreshToken = JwtFactory.builder()
                 .claims(Map.of("id", testUser.getId()))
                 .build()
                 .createToken(jwtProperties);
-
-        refreshTokenRepository.save(new RefreshToken(testUser.getId(), refreshToekn));
+        refreshTokenRepository.save(new RefreshToken(testUser.getId() , refreshToken));
 
         CreateAccessTokenRequest request = new CreateAccessTokenRequest();
-        request.setRefreshToken(refreshToekn);
+        request.setRefreshToken(refreshToken);
         final String requestBody = objectMapper.writeValueAsString(request);
 
         // when
@@ -86,6 +87,8 @@ class TokenApiControllerTest {
         ResultActions resultActions = mockMvc.perform(post(url)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(requestBody));
+
+
 
         // then
         //응답 코드가 201 Created인지 확인, 응답으로 온 액세스 토큰이 비어있지 않은지 확인
