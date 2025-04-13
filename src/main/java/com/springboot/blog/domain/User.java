@@ -50,7 +50,11 @@ public class User implements UserDetails { //UserDetails를 상속받아 인증 
         return password;
     }
 
-// 계정 만료 여부 반환
+    public String getEmail() {
+        return email;
+    }
+
+    // 계정 만료 여부 반환
     @Override
     public boolean isAccountNonExpired() {
         // 만료되었는지 확인하는 로직
