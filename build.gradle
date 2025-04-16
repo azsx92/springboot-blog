@@ -23,7 +23,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'io.jsonwebtoken:jjwt:0.9.1' // Java JWT 라이브러리
 	implementation 'javax.xml.bind:jaxb-api:2.3.1' // XML 무서와 Java 객체 간 매핑 자동화
-
+	// OAuth2를 사용하기 위한 스타터 추가
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	// 1. 스프링 시큐리티를 사용하기 위한 스타터 추가
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	// 2. 타임리프에서 스프링 시큐리티를 사용하기 위한 의존성 추가
