@@ -21,8 +21,7 @@ public class BlogService {
     // 블로그 글 추가 메서드
 @Transactional
     public Article save(AddArticleRequest request , String userName) {
-
-    return blogRepository.save(request.toEntity(userName));
+        return blogRepository.save(request.toEntity(userName));
     }
 
     public List<Article> findAll() {
