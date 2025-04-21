@@ -570,3 +570,146 @@ http:// localhost:8080/articles?token=eyJ0XAiOiJKV1QiLCJhbGciOiJIUZI1NiJ9.eyJpc3
 4. 리다이렉트
 5. 2 에서 만들 URL로 리다이렉트 한다.
 
+## 3.5 글쓴이 추가하기
+- OAuth를 위한 로직이 모두 완성되었으므로 글에 글쓴이를 추가하는 작업을 진행한다.
+
+### 01단계 
+- domain 패키지의 Aricle.java 파일을 연 다음 author 변수를 추가한다. 이후에 빌더 패터에서도 author를 추가해 객체를 생성할 때 글쓴이(author)를 입력받을 수 있게 변경 한다.
+```java
+public class Article { // 기사라는 뜻
+
+    ... 생략 ...
+    // 글쓴이
+    @Column(name = "author", nullable = false)
+    private String author;
+
+
+
+    @Builder // 빌더 패턴으로 객체 생성
+    public Article(String author , String title, String content) {
+        this.author = author;
+        this.title = title;
+        this.content = content;
+    }
+    ... 생략 ...
+
+```
+### 02 단계
+- 기존 글을 작성하는 API에서 작성자를 추가로 저장하기 위해 DTO 패키지의 AddArcleRequest.java 파일을 열고 toEntity() 메서드를 수정해 author 값도 추가 저장하도록 한다.
+```java
+public class AddArticleRequest {
+
+    private String title;
+    private String content;
+    private String author;
+    //toEntity는 빌더 패턴을 사용해 DTO로 만들어 주는 메서드
+    public Article toEntity(String userName) { //생성자를 사용해 객체 생성
+        return Article.builder()
+                .title(title)
+                .content(content)
+                .author(author)
+                .build();
+    }
+}
+
+```
+
+### 03 단계
+- service 패키지의 BlogService.java 파일을 연 다음 save() 메서드에서 유저 이름을 추가로 입력받고 toEntity()의 인수로 전달받은 유저 이름을 반환하도록 코드를 수정한다.
+```java
+
+public class BlogService {
+    ... 생략 ...
+    // 블로그 글 추가 메서드
+@Transactional
+    public Article save(AddArticleRequest request , String userName) {
+}
+
+```
+
+### 04 단게
+- controller 패키지의 BlogApiController.java 파일을 연 다음 현재 인증 정보를 가져 오는 principal 객체를 파라미터로 추가한다. 인증 객체에서는 유저 이름을 가져온 뒤 save() 메서드로 넘겨준다.
+
+```java
+package com.springboot.blog.controller;
+
+import com.springboot.blog.domain.Article;
+import com.springboot.blog.dto.AddArticleRequest;
+import com.springboot.blog.dto.ArticleResponse;
+import com.springboot.blog.dto.UpdateArticleRequest;
+import com.springboot.blog.service.BlogService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
+
+@RequiredArgsConstructor
+// HTTP Response Body에 객체 데이터를 JSON 형식으로 반환하는 컨트롤러
+@RestController
+public class BlogController {
+    private final BlogService blogService;
+
+    ...생략 ...
+
+    // HTTP 메서드가 POST일 때 전달받은 URL과 동일하면 메서드로 매핑
+    @PostMapping("/api/articles")
+    // @RequestBody로 요청 본문 값 매핑
+    public ResponseEntity<Article> addArticle(@RequestBody AddArticleRequest request, Principal principal) {
+        Article saveArticle = blogService.save(request, principal.getName());
+
+        // 요청한 자원이 성공적으로 생성되었으며 저장된 블로그 글 정보를 응답 객체에 담아 전송
+        // create 반환값 201
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(saveArticle);
+    }
+    ... 생략 ...
+}
+```
+
+### 05 단계
+- 글 상세 페이지에서도 글쓴이의 정보가 보여야 하므로 dto 패키지의 ArticleViewResponse.java 파일을 수정한다.
+```java
+public class ArticleViewResponse {
+    private Long id;
+    private String title;
+    private String content;
+    private String author;
+    private LocalDateTime createAt;
+
+
+    public ArticleViewResponse(Article article) {
+        this.id = article.getId();
+        this.title = article.getTitle();
+        this.content = article.getContent();
+        this.createAt = article.getCreateAt();
+        this.author = article.getAuthor();
+    }
+}
+
+```
+
+### 06 단계
+- 스프링 부트 애플리케이션이 실행 될 때 마다 데이터를 추가하기 위해 data.sql 파일에도 author 컬럼을 추가한다.
+```sql
+insert into article (title, content, author, create_at, update_at) values ('제목 1', '내용 1', 'user1',NOW(),NOW())
+insert into article (title, content, author, create_at, update_at) values ('제목 2', '내용 2', 'user2',NOW(),NOW())
+insert into article (title, content, author, create_at, update_at) values ('제목 3', '내용 3', 'user3',NOW(),NOW())
+
+```
+
+### 07 단계
+- 이제 뷰에서 글쓴이의 정보를 알 수 있게 뷰를 수정해 보겠다.
+- article.html 파일을 연 다음 글쓴이의 정보를 가져올 수 있게 코드를 수정한다.
+```html
+... 생략 ...
+<header class="mb-4">
+    <h1 class="fw-bolder mb-1" th:text="${article.title}"></h1>
+    <div class="text-muted fst-italic mb-2"
+         th:text="|Posted on ${#temporals.format(article.createAt, 'yyyy-MM-dd HH:mm')} By ${article.author}|"></div>
+</header>
+... 생략 ...
+
+```

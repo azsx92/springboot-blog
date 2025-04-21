@@ -25,12 +25,16 @@ public class Article { // 기사라는 뜻
     @Column(name = "id", nullable = false)
     private Long id;
 
+
     //제목
     @Column(name = "title", nullable = false) // 'title' 이라는 not null 컬럼과 매핑
     private String title;
     // 내용
     @Column(name = "content", nullable = false)
     private String content;
+    // 글쓴이
+    @Column(name = "author", nullable = false)
+    private String author;
 
     @CreatedDate // 엔티티가 생성될 때 생성 시간 저장
     @Column(name = "create_at")
@@ -42,7 +46,8 @@ public class Article { // 기사라는 뜻
 
 
     @Builder // 빌더 패턴으로 객체 생성
-    public Article(String title, String content) {
+    public Article(String author , String title, String content) {
+        this.author = author;
         this.title = title;
         this.content = content;
     }
