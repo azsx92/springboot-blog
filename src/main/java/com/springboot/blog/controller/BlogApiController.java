@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 // HTTP Response Body에 객체 데이터를 JSON 형식으로 반환하는 컨트롤러
 @RestController
-public class BlogController {
+public class BlogApiController {
     private final BlogService blogService;
 
     @GetMapping("/api/articles")
@@ -52,14 +52,14 @@ public class BlogController {
     }
 
     @DeleteMapping("/api/articles/{id}")
-    public ResponseEntity<Article> deleteArticle(@PathVariable Long id) {
+    public ResponseEntity<Article> deleteArticle(@PathVariable long id) {
         blogService.delete(id);
         return ResponseEntity.ok()
                 .build();
     }
 
     @PutMapping("/api/articles/{id}")
-    public ResponseEntity<Article> updateArticle(@PathVariable Long id, @RequestBody UpdateArticleRequest request) {
+    public ResponseEntity<Article> updateArticle(@PathVariable long id, @RequestBody UpdateArticleRequest request) {
         Article updateArticle = blogService.update(id, request);
         return ResponseEntity.ok()
                 .body(updateArticle);

@@ -33,29 +33,29 @@ public class BlogService {
                 .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
     }
 
-    public void  delete(Long id) {
+    public void  delete(long id) {
         Article article = blogRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
 
-        authorizationArticleAuthor(article);
+        authorizeArticleAuthor(article);
         blogRepository.delete(article);
     }
 
     @Transactional
-    public Article update(Long id , UpdateArticleRequest request) {
+    public Article update(long id , UpdateArticleRequest request) {
         Article article = blogRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found :" + id));
 
-        authorizationArticleAuthor(article);
+        authorizeArticleAuthor(article);
         article.update(request.getTitle(), request.getContent());
 
         return article;
     }
-    // 게시글 작성한 유저인지 확인
-    private void authorizationArticleAuthor(Article article) {
+    // 게시글을 작성한 유저인지 확인
+    private static void authorizeArticleAuthor(Article article) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!article.getAuthor().equals(userName)) {
-            throw new IllegalArgumentException("not authorization");
+            throw new IllegalArgumentException("not authorized");
         }
     }
 

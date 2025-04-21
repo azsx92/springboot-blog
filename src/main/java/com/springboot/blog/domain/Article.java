@@ -47,7 +47,7 @@ public class Article { // 기사라는 뜻
 
     @Builder // 빌더 패턴으로 객체 생성
     public Article(String author , String title, String content) {
-        this.author = title;
+        this.author = author;
         this.title = title;
         this.content = content;
     }
