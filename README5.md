@@ -233,3 +233,64 @@ if (modifyButton) {
 ... 생략 ...
 
 ```
+
+## 3.7 글 수정, 삭제, 글쓴이 확인 로직 추가하기
+- 이제 글을 수정하거나 삭제할 때 요청 헤더에 토큰을 전달하므로 사용자 자신이 작성한 글인지 검증할 수 있다.
+- 따라서 본인 글이 아닌데 수정, 삭제를 시도하는 경우에 예외를 발생시키도록 코드를 수정하도록 하자.
+
+### 01 단계 
+- BlogService.java 파일을 연 다음 코드를 수정한다.
+```java
+package com.springboot.blog.service;
+
+import com.springboot.blog.domain.Article;
+import com.springboot.blog.dto.AddArticleRequest;
+import com.springboot.blog.dto.UpdateArticleRequest;
+import com.springboot.blog.repository.BlogRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+// RequiredArgsConstructor 빈을 생성자로 생성하는 롬복에서 지원하는 애너테이션입니다.
+@RequiredArgsConstructor // final이 붙거나 @NotNull이 붙은 필드의 생성자 추가
+@Service // 빈으로 서블릿 컨테이너에 등록
+public class BlogService {
+
+    private final BlogRepository blogRepository;
+
+    ... 생략 ...
+    
+    public void  delete(Long id) {
+        Article article = blogRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+        
+        authorizationArticleAuthor(article);
+        blogRepository.delete(article);
+    }
+
+    @Transactional
+    public Article update(Long id , UpdateArticleRequest request) {
+        Article article = blogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found :" + id));
+        
+        authorizationArticleAuthor(article);
+        article.update(request.getTitle(), request.getContent());
+        
+        return article;
+    }
+    // 게시글 작성한 유저인지 확인
+    private void authorizationArticleAuthor(Article article) {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!article.getAuthor().equals(userName)) {
+            throw new IllegalArgumentException("not authorization");
+        }
+    }
+    
+}
+
+```
+- 수정, 삭제 메서드는 작업을 수정하기 전 authorizationArticleAuthor() 메서드를 실행해 현재 인증 객체에 담겨 있는 사용자의 정보와 글을 작성한 사용자의 정보를 비교 한다.
+- 만약 서로 다르면 예외를 발생 시켜 작업을 수행하지 않는다.
