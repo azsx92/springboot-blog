@@ -1,3 +1,4 @@
+# 애플리케이션 실행 시 일래스틱 빈스토크에서 값을 덮어쓰므로 여기는 삭제
 spring:
   jpa:
     show-sql: true
@@ -5,21 +6,5 @@ spring:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
-  datasource: # database 정보 추가
-    url: jdbc:h2:mem:testdb
-  h2: # h2 콘솔 활성화
-    console:
-      enabled: true
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: 1073780861141-2ks3075kv5iuvnmdk2lpnm9nhb9pth0r.apps.googleusercontent.com
-            client-secret: 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
-            scope:
-              - email
-              - profile
 jwt:
   issuer: azsx92@gmail.com
-  secret_key: study-springboot
