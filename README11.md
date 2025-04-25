@@ -537,7 +537,6 @@ AWS RDS 등에서 접속 허용을 위해 보안 그룹에 입력해야 할 내 
 ---
 
 ## 어차피 포트 포워딩에 대해 개념 정리를 다시 해본다.
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
 
 ## 포트 포워딩(Port Forwarding)이란?
 ![포트포워딩.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%ED%8F%AC%ED%8A%B8%ED%8F%AC%EC%9B%8C%EB%94%A9.png)
@@ -659,3 +658,70 @@ AWS RDS 등에서 접속 허용을 위해 보안 그룹에 입력해야 할 내 
 
 [^21]: https://www.youtube.com/watch?v=yQJYvi6IJds
 
+---
+### 05 단계
+- 이제 로컬에서 일래스틱 빈스토크 데이터베이스에 연결할 수 있는지 확인하겠다. 인텔리제이 커뮤니티는 다양한 플러그인을 제공한다.
+- 여기서는 database navigator 플러그인을 설치해 데이터베이스를 연결한다. [File -> Setting...]에서 plugins 옵션을 검색한 다음 database navigator를 검색해 'Dan Cioca' 제작자의 플로그인을 설치 한다.
+- 설치 후에는 인텔리제이를 재시작해야한다. 인텔리제이를 켜고 왼쪽도구 메뉴에서 [DB Browser]를 선택한다. 만약 보이지 않는다면 맨 위의 메뉴바에서[View -> Tool Windows -> DB Browser]를 선택하면 된다.
+- 그 뒤에는 [+] 버튼을 누른 뒤 [Data Source -> MySQL]을 선택 한다.
+- ![로컬에서 연결하기 05단계.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EC%97%90%EC%84%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2005%EB%8B%A8%EA%B3%84.png)
+- 이 후 [IdeRestart] 클릭
+
+### 06 단계
+- 데이터 베이스 정보 창에 RDS의 정보인 Host, User, Password를 입력한다.
+1. Host는 일래스틱 빈스토크의 구성에서 보았던 엔드포인트에서 포트 번호 : 3306을 뺀 값이다.
+2. Port는 자동으로 입력된 값인 3306이 맞는지 확인한다.
+3. 입력을 마치면 [TestConnection] 버튼을 눌러 데이터베이스 연결이 잘 되는지 테스트 한다.만약 연결이 잘되면 초록식 브리(V) 표시가 뜨며 연결에 성공했다는 안내 문구가 나오고 
+4. DB Browser 탭에 연결 항목이 보인다.
+- ![로컬로 연결하기 06단계.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EB%A1%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2006%EB%8B%A8%EA%B3%84.png)
+- ![로컬에서 연결하기 06단계 2.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EC%97%90%EC%84%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2006%EB%8B%A8%EA%B3%84%202.png)
+- ![로컬에서 연결하기 06단계 3.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EC%97%90%EC%84%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2006%EB%8B%A8%EA%B3%84%203.png)
+
+### 07 단계 
+- 그런 다음 DB Browser 메뉴바에서 [New SQL Console]을 눌러 SQL문을 작성할 수 있는 창을 연다.
+- 여기에 우리게 필요한 테이블을 생성하는 SQL문을 작성하고 >를 눌러 SQL문을 실행해보자.
+- ![로컬에서 연결하기 07단계 1.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EC%97%90%EC%84%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2007%EB%8B%A8%EA%B3%84%201.png)
+- ![로컬에서 연결하기 07단계 2.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EC%97%90%EC%84%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2007%EB%8B%A8%EA%B3%84%202.png)
+```sql
+create database blog;
+use blog;
+
+create table article (
+    id bigint not null AUTO_INCREMENT,
+    author varchar(255) not null,
+    content varchar(255) not null,
+    created_at timestamp,
+    title varchar(255) not null,
+    updated_at  timestamp,
+    primary key (id)
+);
+
+create table refresh_token (
+    id bigint not null AUTO_INCREMENT,
+    refresh_token varchar(255) not null,
+    user_id bigint not null,
+    primary key (id)
+);
+
+create table users (
+                id bigint not null AUTO_INCREMENT,
+                created_at timestamp,
+                nickname varchar(255),
+                password varchar(255),
+                updated_at timestamp,
+                primary key (id)
+);
+```
+- 실행 후에 다음 콘솔 메시지가 나와야 한다. 메시지를 확인하고 다음으로 넘어 간다.
+- ![로컬에서 연결하기 07단계 3.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EC%97%90%EC%84%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2007%EB%8B%A8%EA%B3%84%203.png)
+
+### 08단계
+- 이제 아마존 서버에서 MySQL을 사용하므로 프로젝트를 빌드해 배ㅠ포하기 전에 의존성을 축가한다.
+- build.gradle 파일을 열어 의존성을 추가하고 새로고침을 눌러 의존성을 추가 한다.
+```groovy
+dependencies {
+    // ... 생략 ...
+	implementation 'mysql:mysql-connector-java'
+}
+```
+- ![로컬에서 연결하기 08단계 01.png](%EC%9D%BC%EB%A0%88%EC%8A%A4%ED%8B%B1%20RDS%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%20%EC%9D%B4%EB%AF%B8%EC%A7%80%2F%EB%A1%9C%EC%BB%AC%EC%97%90%EC%84%9C%20%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0%2008%EB%8B%A8%EA%B3%84%2001.png)
