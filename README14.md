@@ -199,11 +199,91 @@ jobs:
 
 #### 02 단계
 - 추가된 파일을 원격 저장소에 올리기 위해 커밋, 푸시를 진행하고 깃허브 리포지터리의 [Action] 메뉴에 들어가 CI가 실행되는 것을 확인한다.
+- 주의 할 점은 : yaml 문법이 틀렸는지 확인한다.
 ```shell
 ➜  springboot-developer git:(main) ✗ git add .
 ➜  springboot-developer git:(main) ✗ git commit -m 'CI 추가'
 ➜  springboot-developer git:(main) git push origin main
 ```
+- ![02단계 12.2.2.png](CI_CD%2F02%EB%8B%A8%EA%B3%84%2012.2.2.png)
+- 워크플로가 성공적으로 동작하면 초록색 체크 모양으로 표시된다. 여기까지 호가인한 뒤에 CD 스크립트를 추가한다.
+
+---
+
+### 12.2.3 깃허브 액션 스크립트 작성하기 CD
+
+#### 01 단계
+- 현재 프로젝트에서는 빌드를 진행하면 총 두개의 jar 파일이 생긴다. 하나는 일반 jar 파일이고 다른 하나는 plain이라는 접미사가 붙은 jar 파일이다.
+- ![12.2.3 01 단계.png](CI_CD%2F12_2_3%2F12.2.3%2001%20%EB%8B%A8%EA%B3%84.png)
+  - 이 jar 플레인 아카이브(plain archive)라고 하며 애플리케이션 실행에 필용한 의존성을 포함하지 않고 소스 코드의 클래스 파일과 리소스 파일만 포함한다. 따라서 플레인 아카이브만으로는 서비스를 실행할 수 없으므로 빌드 시에 일반 jar 파일만 생성하도록 그레이들 파일을 변경하겠다.
+```groovy
+/*build.gradle*/
+jar {
+    enabled = false
+}
+```
+#### 02 단계
+- 깃허브 액션 스크립트에서 만든 ci.yaml 파일 이름을 cicd.yaml로 변경하고 다음 코드를 추가한다.
+```yaml
+# 1. 워크플로의 이름 지정
+name: CI
+
+# 2. 워크플로가 시작될 조건 지정
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest # Ubuntu 환경은 ubuntu-latest, Windows는 windows-latest로 지정
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      # 2. 현재 시간 가져오기
+      - name: Get current time
+        uses: josStorer/get-current-time@v2.0.2
+        id: current-time
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: "+09:00"
+
+      # 3. 배포용 패키지 경로 저장
+      - name: Set artifact
+        run: echo "artifact=$(ls ./build/libs)" >> $GITHUB_ENV
+
+      # 4. 빈스토크 배포
+      - name: Beanstalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: springboot-developer
+          environment_name: springboot-developer_env
+          version_label: github-action-${{ steps.current-time.outputs.formattedTime }}
+          region: ap-northeast-2
+          deployment_package: ./build/libs/${{ env.artifact }}
+
+```
+1. 깃허브 액션 이름을 CI에서 CI/CD로 변경 한다.
+2. josStorer/get-current-time 플러그인을 통해 현재 시간을 가져 온다. 가져온 시간은 배포 버젼을 지정할 때 사용한다.
+3. 빌드 이후에 생성된 jar 파일로 찾아 'artifact' 라는 환겨우 변수에 값을 넣어 준다. $GITHUBENV를 사용해 깃허브 워크프로 전체적으로 사용할 수 있는 환경 변수를 설정 할 수 있다. 
+4. einaregilsson/beanstalk-deploy 플러그인을 사용해 빈스토크 배포를 진행한다. 여기서 지정한 secret.AWS_ACCESS_KEY_ID 와 secrets.AWS_SECRET_ACCESS_KEY 는 깃허브 액션에서 가져오는 비밀 값이다. 이 값은 AWS에서 만든 뒤 깃허브에 설정해야 한다. 또한 애플리케이션 이름 과 환경 이름을 일래스틱 빈스토크에서 확인 할 수 있다.
 #### 03 단계
 #### 04 단계
 #### 05 단계
+#### 06 단계
+#### 07 단계
+#### 08 단계
+#### 09 단계
