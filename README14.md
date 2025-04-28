@@ -199,7 +199,11 @@ jobs:
 
 #### 02 단계
 - 추가된 파일을 원격 저장소에 올리기 위해 커밋, 푸시를 진행하고 깃허브 리포지터리의 [Action] 메뉴에 들어가 CI가 실행되는 것을 확인한다.
-
+```shell
+➜  springboot-developer git:(main) ✗ git add .
+➜  springboot-developer git:(main) ✗ git commit -m 'CI 추가'
+➜  springboot-developer git:(main) git push origin main
+```
 #### 03 단계
 #### 04 단계
 #### 05 단계
