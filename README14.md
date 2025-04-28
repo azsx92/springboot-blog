@@ -103,7 +103,7 @@ $ ssh-keygen -t rsa -C "[깃허브 이메일 주소]"
 - `git init` 명령어는 특정 폴더를 깃 저장소로 만들 때 사용하는 명령어다. '빈 깃 저장소를 다시 초기화 했습니다' 라는 안내 문구가 나타내면 제대로 실행된 건다. 그리고 숨긴 폴더로 .git이 폴더가 생긴다. 바로 이 폴더에 코드의 변경 내역(버젼)관리를 위한 정보를 저장한다.
 - 이 폴더를 실수로 지우면 여러분의 버전 관리 내역이 모두 사라지므로 주의해야한다.
   - **깃, 깃허브를 구분해서 지금까지 진행한 작업을 정리한다.** 깃허브에서는 리포지토리를 만들었고, 로컬에서는 스프링 프로젝트를 깃 저장소로 생성했다. 그림으로 보면 다음과 같다.
-  - ![git repository.png](CI_CD%2Fgit%20repository.png)
+  - ![git repository.png](CI_CD%2Fgit%20re![05단계 git add.png](..%2F..%2F..%2FDesktop%2F05%EB%8B%A8%EA%B3%84%20git%20add.png)pository.png)
 
 #### 04 단계
 - 이번에는 깃허브의 리포지토리와 로컬의 깃 저장소를 연결하기 위해 remote 명령어를 사용한다.
@@ -120,4 +120,36 @@ $ git remote add origin git@github.com:${사용자계정}/springboot-developer.g
 - 이제 로컬 저장소의 이력, 파일을 리포지토리에 푸 시하기 위한 add, commit 작업을 해본다.
 - add . 명령어는 현재 프로젝트 폴더의 모든 파일을 대상으로 변경 사항 등을 추적하고 그 파일들을 스테이지라는 곳에 올린다. 스테이지는 쉽게 말해서 리포지토리에 올리기 전에 파일들의 변경 사항을 미리 모아놓는 곳이다.
 - commit . 로컬 저장소에 올리기 위한 것으로 , 즉 커밋을 해야만 로컬 저장소에 변경 이력, 변경한 파일들이 업데이트 된다.
-- 
+- ![05단계 git add.png](CI_CD%2F05%EB%8B%A8%EA%B3%84%20git%20add.png)
+```shell
+# remote 변경하기
+➜  springboot-developer git:(main) git remote -v
+origin  https://github.com/azsx92/springboot-blog.git (fetch)
+origin  https://github.com/azsx92/springboot-blog.git (push)
+➜  springboot-developer git:(main) git remote set-url origin git@github.com:azsx92/springboot-developer.git
+
+```
+
+#### 06 단계
+- 브랜치명을 main으로 바꾼 후 원격 저장소에 저장하기 위해 push 명령어를 입력해 푸시를 마무리 한다. 이제 깃허브 리포지토리에 코드가 업데이트 되었다.
+```shell
+$ git branch -M main
+$ git push origin main
+
+➜  springboot-developer git:(main) git push
+오브젝트 나열하는 중: 833, 완료.
+오브젝트 개수 세는 중: 100% (833/833), 완료.
+Delta compression using up to 12 threads
+오브젝트 압축하는 중: 100% (634/634), 완료.
+오브젝트 쓰는 중: 100% (833/833), 9.44 MiB | 3.39 MiB/s, 완료.
+Total 833 (delta 262), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (262/262), done.
+To github.com:azsx92/springboot-developer.git
+ 
+```
+
+#### 07 단계 
+- 깃허브에 접속해 리포지토리를 확인하면 커밋할 때 적었던 메시지와 함께 코드들이 업로드된 것을 확인할 수 있다.
+- ![07단계 git push.png](CI_CD%2F07%EB%8B%A8%EA%B3%84%20git%20push.png)
+
+---
