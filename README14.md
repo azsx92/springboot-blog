@@ -24,3 +24,54 @@
 - 즉, 개발자가 애플리케이션에 변겨우 사항을 커밋한 후 몇 분 이내에 애플리케이션을 자동으로 배포되어 적용된다.
 - ![CD.png](CI_CD%2FCD.png)
 
+### 12.1.1 git and github
+- 깃(git)은 개발자가 되고 싶은 여러분이라면 한 번쯤은 들어봤을 코드를 저장하고 관리할 수 있는 시스템이다.
+  - 이 시스템을 이용하면 같은 파일을 여러 명이 동시에 작업할 수 있다. 즉, 병렬개발을 할 수 있다. 깃허브(github)는 깃과 연동해 작업한 코드를 저장할 수 있는 서비스이다.
+  - 여기서는 두 서비스를 이용해 앞서 배운 CI/CD를 구현해 실제로 실습 해본다.
+### 깃 설치하기
+#### 01 단계
+- 깃 다운로드 페이지 http://git-scm.com/download/win에 접속한 뒤 [Click here to download]를 눌러 깃을 설치한다. 설치는 기본값을 그대로 두고 설치하면 된다.
+  - ![git-install-win02.png](CI_CD%2Fgit-install-win02.png)
+#### 02 단계
+- 길 설치가 완료되면 iTerm에 실행하고 git --version 명령어를 입력한다.
+- 버젼이 출력되면 제대로 나온 것이다.
+- ![git version.png](CI_CD%2Fgit%20version.png)
+
+### 깃허브 와 깃 연동하기
+#### 01 단계
+- 깃을 깃허브에 연동하려면 깃허브 회원 가입을 하고 깃 초기 설정을 해야 한다.
+- 깃허브에 접속해서 회원 가입을 한 다음 git config 명령어를 사용해 깃허브에 가입한 사용자 이름 과 이메일 주소를 설정한다.
+- 여기에서 설정한 정보로 커밋할 때마다 이 정보를 사용한다.
+- 사용자 이름, 이메일 주소 설정
+```shell
+$ git config --global user.name "[깃허브 아이디]"
+$ git config --global user.email "[깃허브 이메일 주소]"
+```
+#### 02 단계
+- 또한 깃은 SSH로 접속하기 위해 인증 정보를 등록해야 하는데, PC마다 별도의 SSH 키를 등록해야한다.
+- 터미널 창을 열고 SSH 키를 생성하는 명령어를 입력한다. 질문에는 모두 기본 값을 사용하게 아무것도 입력하지 않고 `enter`를 누른다.
+- SSH KEY 생성
+```shell
+$ ssh-keygen -t rsa -C "[깃허브 이메일 주소]"
+```
+- ![ssh key.png](CI_CD%2Fssh%20key.png)
+
+#### 03단계 
+- 생성 완료 메시지가 뜨면 기본 경로인 /.ssh/id_rsa에 pub 파일이 생기는데 파일을 열어 값을 복사하고 이를 깃허브에 등록해야 한다.
+- ssh 키가 저장되어 있는 위치로 이동한 다음 pub파일을 메모장으로 열어준다. 그 뒤에 나오는 내용을 전체 복사한다.
+```shell
+➜  ~ ~/.ssh
+```
+- ![03단계 ssh.png](CI_CD%2F03%EB%8B%A8%EA%B3%84%20ssh.png)
+#### 04 단계
+- 깃허브 홈페이지에 접속한 다음 프로필 사진을 누른 후 [Settings] 메뉴에 들어간다. 그런 다음 왼쪽 하단에 있는 [SSH and GPG keys]를 선택하고 [New SSH key]를 눌러 새로운 키를 등록한다.
+- ![github ssh key setting.png](CI_CD%2Fgithub%20ssh%20key%20setting.png)
+- ![github ssh key setting 2.png](CI_CD%2Fgithub%20ssh%20key%20setting%202.png)
+#### 05 단계
+- Title에 추가할 SSH 키 이름을 적고 복사 해두었던 SSH 키를 붙여넣어 준다.
+- 그 뒤 [Add SSH key] 버튼을 눌러 SSH 키를 추가한다.
+- 복사 명령어 `pbcopy < ~/.ssh/id_rsa.pub`
+- ![github ssh key setting 4.png](CI_CD%2Fgithub%20ssh%20key%20setting%204.png)
+- ![github ssh setting 3.png](CI_CD%2Fgithub%20ssh%20setting%203.png)
+- 이제 연동 작업은 끝나닫. 이제 깃을 사용하기 위한 모든 준비가 끝났으니, CI/CD를 만들기 위해 깃허브 액션을 사용하며 실습을 진행해 본다.
+
