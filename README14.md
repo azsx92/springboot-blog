@@ -153,3 +153,53 @@ To github.com:azsx92/springboot-developer.git
 - ![07단계 git push.png](CI_CD%2F07%EB%8B%A8%EA%B3%84%20git%20push.png)
 
 ---
+
+### 12.2.2 깃허브 액션 스크립트 작성하기 , CI
+- 이제 깃허브에 리포지토리가 준비되었으니 깃허브 액션 스크립트를 작성해 CI를 구현한다.
+
+#### 01 단계
+- 프로젝트 최상단에 .github 디렉터리를 만든다. 그 안에 workflows 디렉터리를 다시 만들고 ci.yml 파일을 생성해 다음 스크립트를 작성한다.
+- 여기서 주의 할 점은 디렉토리 명을 workflow로 하지 않기로 한다!
+- ![01 단계  12.2.2 .png](CI_CD%2F01%20%EB%8B%A8%EA%B3%84%20%2012.2.2%20.png)
+```yaml
+# 1. 워크플로의 이름 지정
+name: CI
+
+# 2. 워크플로가 시작될 조건 지정
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest # Ubuntu 환경은 ubuntu-latest, Windows는 windows-latest로 지정
+    # 4 실행 스텝 지정
+    steps:
+      - uses: actions/sheckout@v3
+        
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Grant execute permission for gradlew
+      - run: chmod +x gradlew
+      
+      - name: Build with Gradle
+        run: ./gradlew clean build
+```
+1. 워크플로 이름을 지정
+2. 워크플로를 시작할 트리거 조건을 지정, main 브랜치에 푸시를 할때 마다 워크플로를 시작하도록 작성했다.
+3. 리눅스나 원도우와 같은 실행 환경을 지정한다. 필자는 macOS로 지정
+4. 실행 스텝을 그룹화한다. 각 항목은 별도의 작업uses 또는 명령어run로 이루어 졌다.
+5. 실행 스텝 그룹화 정리
+   6. users : users 키워드는 지정한 리포지토리를 확인하고 코드에 대한 작업을 실행 할 수 있다. action/check-out에는 checkout이라는 작업의 v3 버젼을 실행한다.
+   7. naem : 스텝의 이름을 지정한다.
+   8. run : run 키워드는 실행할 명령어를 입력한다. ./gradlew clean build에는 그레들을 사용해 프로젝트를 빌드 이전 상태로 돌리고 다시 빌드하는 명령어를 실행한다.
+
+#### 02 단계
+- 추가된 파일을 원격 저장소에 올리기 위해 커밋, 푸시를 진행하고 깃허브 리포지터리의 [Action] 메뉴에 들어가 CI가 실행되는 것을 확인한다.
+
+#### 03 단계
+#### 04 단계
+#### 05 단계
