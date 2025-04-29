@@ -13,14 +13,13 @@ spring:
       client:
         registration:
           google:
-            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
-            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
+            client-id: client-id
+            client-secret: client-secret
             scope:
               - email
               - profile
 jwt:
   issuer: azsx92@gmail.com
-  secret_key: ${JWT_SECRET_KEY}
+  secret_key: secret_key
 
-server:
-  port: ${SERVER_PORT:5000}
+
