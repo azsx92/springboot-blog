@@ -318,3 +318,213 @@ $ git push origin main"
 ```
 - ![12.2.3 09 1.png](CI_CD%2F12_2_3%2F12.2.3%2009%201.png)
 - ![12.2.3 09 2.png](CI_CD%2F12_2_3%2F12.2.3%2009%202.png)
+
+# 모든 과정을 마쳤다.
+
+---
+
+
+# https://ap-northeast-2.console.aws.amazon.com/elasticbeanstalk/home?region=ap-northeast-2\#/environment/dashboard?environmentId=e-p7xwt8j5mw
+
+왜 여기로 다른 사람이 들어가면 이렇게 뜨는 걸까?
+
+해당 오류 메시지와 현상은 **Google OAuth(구글 로그인) 인증을 시도할 때 "disallowed_useragent"** 에러가 발생하는 상황입니다. 즉, 누군가가 AWS Elastic Beanstalk 콘솔 링크(예: `https://ap-northeast-2.console.aws.amazon.com/elasticbeanstalk/...`)에 접근했을 때, Google 로그인이 필요한데, 이 로그인 요청이 **허용되지 않는 브라우저 환경(내장 브라우저, WebView 등)**에서 발생해서 Google이 차단한 것입니다.
+
+---
+
+## 원인 분석
+
+- **Google 정책 강화**: 2019년부터 Google은 보안 강화를 위해 *WebView* 또는 일부 내장 브라우저(앱 내부 브라우저, 카카오톡/네이버앱/인스타그램 등)에서의 OAuth 로그인을 차단합니다.
+- **disallowed_useragent**: 이 오류는 사용자가 Chrome, Safari, Edge 같은 표준 브라우저가 아닌, 앱 내부의 임베디드 브라우저(WebView)에서 Google 로그인을 시도할 때 발생합니다.
+- **AWS 콘솔 접근**: AWS 콘솔은 Google Workspace(회사 계정) 또는 SSO로 로그인할 수 있는데, 이때도 반드시 공식 브라우저를 사용해야 합니다.
+
+---
+
+## 왜 이런 일이 발생하는가?
+
+- 링크를 **카카오톡, 네이버, 인스타그램, 페이스북 등** 메신저/앱에서 클릭하면, 대부분의 경우 앱 내부 브라우저(WebView)로 열립니다.
+- 이 환경에서는 Google 로그인이 차단되어 위와 같은 에러가 발생합니다.
+
+---
+
+## 해결 방법
+
+1. **공식 브라우저로 열기**
+    - 링크를 길게 눌러 "Chrome(또는 Safari)에서 열기"를 선택하거나,
+    - 우측 상단의 메뉴(⋮) → "기본 브라우저에서 열기" 기능 사용
+    - 또는 링크를 복사해서 Chrome, Safari 등 표준 브라우저에 붙여넣기
+2. **사용자에게 안내**
+    - "구글 로그인이 필요한 서비스는 반드시 Chrome, Safari, Edge 등 공식 브라우저에서 접속하세요."
+    - "카카오톡/네이버 등 앱에서 바로 열지 말고, 링크를 복사해 브라우저에 붙여넣으세요."
+3. **개발자라면**
+    - 앱에서 Google 로그인을 구현할 때는 WebView가 아닌 외부 브라우저(Chrome Custom Tabs, SFSafariViewController 등)로 인증 플로우를 열도록 구현해야 합니다.
+
+---
+
+## 참고
+
+- 이 문제는 AWS, Google, OAuth, 또는 SSO(싱글 사인온) 인증이 필요한 모든 웹사이트에서 동일하게 발생할 수 있습니다.
+- 자세한 내용은 [Google 공식 문서](https://developers.googleblog.com/2016/08/modernizing-oauth-interactions-in-native-apps.html)에서 확인할 수 있습니다.
+
+---
+
+**요약:**
+"disallowed_useragent" 오류는 앱 내 브라우저(WebView)에서 Google 로그인을 시도해서 발생합니다. 반드시 Chrome, Safari 등 표준 브라우저로 링크를 열어야 정상적으로 로그인할 수 있습니다.
+
+<div style="text-align: center">⁂</div>
+
+[^1]: https://pplx-res.cloudinary.com/image/private/user_uploads/bfbOaTaRaVVrJWO/KakaoTalk_Photo_2025-04-29-20-34-12.jpg
+
+[^2]: https://ap-northeast-2.console.aws.amazon.com/elasticbeanstalk/home?region=ap-northeast-2
+
+[^3]: https://stackoverflow.com/questions/35048543/aws-beanstalk-getting-access-denied-while-accessing-auto-scaling-and-err
+
+[^4]: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.security.html
+
+[^5]: https://stackoverflow.com/questions/69016912/deny-aws-iam-user-access-to-specific-elastic-beanstalk-environments
+
+[^6]: https://docs.aws.amazon.com/ko_kr/elasticbeanstalk/latest/dg/AWSHowTo.iam.managed-policies.html
+
+[^7]: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.iam.managed-policies.html
+
+[^8]: https://serverfault.com/questions/725067/deploy-to-elastic-beanstalk-from-s3-gives-you-do-not-have-permission-who-is
+
+[^9]: https://serverfault.com/questions/920834/cant-add-rds-database-to-elastic-beanstalk-environment
+
+[^10]: https://docs.aws.amazon.com/ko_kr/elasticbeanstalk/latest/dg/AWSHowTo.iam.html
+
+[^11]: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts-roles-user.html
+
+[^12]: https://repost.aws/questions/QU7VR8vgi_QZyLATRj1xSDGQ/an-error-occurred-insufficientprivilegesexception-when-calling-the-updateenvironment-operation-access-denied
+
+[^13]: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/troubleshooting-kb.html
+
+[^14]: https://docs.aws.amazon.com/ko_kr/securityhub/latest/userguide/elasticbeanstalk-controls.html
+
+[^15]: https://gist.github.com/magnetikonline/5034bdbb049181a96ac9
+
+[^16]: https://docs.aws.amazon.com/ko_kr/IAM/latest/UserGuide/troubleshoot_access-denied.html
+
+[^17]: https://repost.aws/questions/QUZAzhwEkfRA6mcn8LNtr1mg/unable-to-resolve-permission-error-python-and-aws-eb
+
+[^18]: https://docs.aws.amazon.com/ko_kr/elasticbeanstalk/latest/dg/using-features.managing.security.html
+
+[^19]: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/security-best-practices.html
+
+[^20]: https://repost.aws/questions/QUKrHhT51aQFm0HJFceNTqYQ/missing-permission-for-eb-create-elastic-beanstalk
+
+[^21]: https://www.reddit.com/r/aws/comments/ve9m9u/elastic_beanstalk_full_access_iam_for_specific/
+
+[^22]: https://stackoverflow.com/questions/56846376/aws-elastic-beanstalk-warn-install-eacces-permission-denied-access-tmp-np
+
+
+앱 내부 브라우저(WebView)
+
+<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
+
+# 앱 내부 브라우저(WebView) 으로 열수 있는 방법은 없는 건가?
+
+구글 OAuth 로그인에서 "403 disallowed_useragent" 오류가 발생하는 이유와, 앱 내부 브라우저(WebView)에서 구글 로그인을 할 수 있는 방법에 대해 정리해드립니다.
+
+---
+
+## 왜 이 오류가 발생하나요?
+
+- **Google은 2021년부터 보안상의 이유로 WebView(앱 내장 브라우저)에서의 OAuth 로그인을 공식적으로 차단**하고 있습니다[^6][^5].
+- WebView 환경은 사용자의 인증 정보를 앱이 직접 취득할 수 있어 보안 위험이 크기 때문입니다.
+- 따라서, 카카오톡·네이버앱 등에서 AWS 콘솔이나 구글 로그인이 필요한 사이트를 열면 위와 같은 에러가 발생합니다.
+
+---
+
+## WebView에서 구글 로그인을 할 수 있는 방법은?
+
+### 1. **공식적으로는 불가능**
+
+- 구글 정책상 WebView에서의 OAuth 인증은 허용되지 않으므로, 표준적인 방법으로는 WebView에서 구글 로그인을 지원할 수 없습니다[^5][^6].
+
+
+### 2. **권장 대안: 외부 브라우저(Chrome Custom Tabs/SafariViewController) 사용**
+
+- 앱에서 구글 로그인이 필요하다면, WebView가 아니라 **외부 브라우저(Chrome, Safari 등)** 또는 **Chrome Custom Tabs(Android), SFSafariViewController(iOS)**로 인증을 진행해야 합니다[^5][^6].
+- 인증이 끝나면 토큰을 앱으로 전달하는 방식으로 구현해야 합니다.
+
+
+### 3. **(비추천) User-Agent 변경**
+
+- 일부 개발자들은 WebView의 User-Agent를 Chrome 등으로 바꿔서 우회하려고 하지만, 이 방법은 대부분 동작하지 않거나, 일시적으로만 동작하다가 곧 차단됩니다[^4].
+- 구글은 User-Agent만으로 WebView를 판별하지 않고, 다양한 방식으로 WebView 환경을 감지합니다.
+
+
+### 4. **Native 인증 후 WebView에 전달 (고급 개발자용)**
+
+- 앱에서 **Native Google Sign-In**을 먼저 진행한 뒤, 얻은 인증 토큰(id_token 등)을 WebView로 전달하는 방법이 있습니다[^2][^3].
+- 이 방법은 개발 난이도가 높고, 보안 및 유지보수 측면에서 신중히 접근해야 합니다.
+
+---
+
+## 결론 및 실질적인 해결책
+
+- **일반 사용자는**
+  → "앱 내 브라우저(WebView)에서는 구글 로그인이 불가능하니, 반드시 Chrome, Safari 등 공식 브라우저로 링크를 열어야 합니다."
+  → 링크를 길게 눌러 "브라우저에서 열기"를 선택하거나, 복사해서 브라우저에 붙여넣으세요.
+- **앱 개발자는**
+  → WebView에서 구글 로그인을 시도하지 말고, 반드시 외부 브라우저 또는 Custom Tabs를 사용하여 인증을 구현해야 합니다[^5][^6].
+
+---
+
+### 참고
+
+> "403 disallowed_useragent"는 구글이 WebView 환경에서의 소셜 로그인을 차단했기 때문에 발생합니다.
+> 공식 우회 방법은 없으며, 반드시 외부 브라우저로 인증을 진행해야 합니다.
+
+---
+
+**요약:**
+앱 내부 브라우저(WebView)에서는 구글 로그인을 할 수 없습니다.
+외부 브라우저(Chrome, Safari 등)로 링크를 열어야 정상적으로 로그인할 수 있습니다.
+개발자라면 Custom Tabs나 Native 인증 후 토큰 전달 방식을 고려하세요.
+
+<div style="text-align: center">⁂</div>
+
+[^1]: https://pplx-res.cloudinary.com/image/private/user_uploads/bfbOaTaRaVVrJWO/KakaoTalk_Photo_2025-04-29-20-34-12.jpg
+
+[^2]: https://stackoverflow.com/questions/65353812/web-google-auth-workaround-for-403-disallowed-useragent-exists
+
+[^3]: https://www.reddit.com/r/androiddev/comments/jy5ouz/how_to_google_sign_in_in_a_webview/
+
+[^4]: https://doctorson0309.tistory.com/1030
+
+[^5]: https://auth0.com/blog/oauth-2-best-practices-for-native-apps/
+
+[^6]: https://web3auth.io/community/t/google-login-within-mobile-webview-403-disallowed-useragent/4887
+
+[^7]: https://docs.descope.com/auth-methods/oauth/customize/unsupported-webview-oauth
+
+[^8]: https://community.auth0.com/t/error-403-disallowed-useragent-when-using-google-sign-in/88866
+
+[^9]: https://stackoverflow.com/questions/51167203/android-google-login-not-working-inside-webview
+
+[^10]: https://github.com/pichillilorenzo/flutter_inappwebview/issues/1112
+
+[^11]: https://fusionauth.io/blog/best-practices-for-oauth-in-mobile-apps
+
+[^12]: https://stackoverflow.com/questions/45300239/alternative-for-using-webview-for-oauth-google-without-google-play-service-incor
+
+[^13]: https://github.com/react-native-webview/react-native-webview/issues/162
+
+[^14]: https://documentation.swing2app.com/developer/webview/implementing-google-and-facebook-login-in-webview
+
+[^15]: https://velog.io/@jphong1005/UIKit-403-error-disalloweduseragent-구글-로그인-구현하기
+
+[^16]: https://developers.googleblog.com/modernizing-oauth-interactions-in-native-apps-for-better-usability-and-security/
+
+[^17]: https://developers.google.com/identity/protocols/oauth2/web-server
+
+[^18]: https://github.com/nhn/gpm.unity/issues/200
+
+[^19]: https://www.reddit.com/r/Firebase/comments/15i63j6/how_to_get_around_403_disallowed_useragent_when/
+
+[^20]: https://community.auth0.com/t/403-disallowed-useragent-for-web-login-from-embedded-browsers/55074
+
+[^21]: https://support.servicenow.com/kb?id=kb_article_view\&sysparm_article=KB0623491
+
