@@ -21,6 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'io.jsonwebtoken:jjwt:0.9.1' // Java JWT 라이브러리
 	implementation 'javax.xml.bind:jaxb-api:2.3.1' // XML 무서와 Java 객체 간 매핑 자동화
 	// OAuth2를 사용하기 위한 스타터 추가
@@ -31,12 +32,14 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
 	implementation 'mysql:mysql-connector-java'
+	implementation 'org.jetbrains:annotations:24.0.0'
 	runtimeOnly 'com.h2database:h2' //인 메모리 데이터베이스
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
 	// 3. 스프링 스큐리티를 테스트하기 위한 의존성 추가
+	testImplementation 'com.github.javafaker:javafaker:1.0.2'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.security:spring-security-test'
