@@ -1,6 +1,5 @@
-package com.springboot.blog.dto;
+package com.springboot.blog.config;
 
-import com.springboot.blog.config.ErrorCode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
